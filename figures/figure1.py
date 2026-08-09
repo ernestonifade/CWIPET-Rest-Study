@@ -34,7 +34,7 @@ def load_results():
     meta_in_df = [c for c in metadata_cols if c in wide_df.columns]
     protein_cols = [c for c in wide_df.columns if c not in meta_in_df and pd.api.types.is_numeric_dtype(wide_df[c])]
 
-    fig3_long_df = wide_df.melt(
+    fig1_long_df = wide_df.melt(
         id_vars=meta_in_df,
         value_vars=protein_cols,
         var_name='Protein',
@@ -292,7 +292,7 @@ def render_figure3():
         axes[0].set_xlim(-0.5, 2.5)  # Expanded padding for 3 ticks
         
         axes[0].set_ylabel("Adjusted EMM (nm)")
-        axes[0].set_title("EV Size")
+        axes[0].set_title("IL-26")
         
         # Optional: Add significance brackets between specific pairs (e.g., index 0 and 2)
          add_bracket(axes[0], 0, 2, y_val, h_val, "* p < 0.05")
@@ -336,7 +336,7 @@ def render_figure3():
         axes[0].set_xlim(-0.5, 2.5)  # Expanded padding for 3 ticks
         
         axes[0].set_ylabel("Adjusted EMM (nm)")
-        axes[0].set_title("EV Size")
+        axes[0].set_title("Aminomalonic acid")
         
         # Optional: Add significance brackets between specific pairs (e.g., index 0 and 2)
          add_bracket(axes[0], 0, 2, y_val, h_val, "* p < 0.05")
@@ -380,7 +380,7 @@ def render_figure3():
         axes[0].set_xlim(-0.5, 2.5)  # Expanded padding for 3 ticks
         
         axes[0].set_ylabel("Adjusted EMM (nm)")
-        axes[0].set_title("EV Size")
+        axes[0].set_title("IL-11")
         
         # Optional: Add significance brackets between specific pairs (e.g., index 0 and 2)
         # add_bracket(axes[0], 0, 2, y_val, h_val, "* p < 0.05")
@@ -424,7 +424,7 @@ def render_figure3():
         axes[0].set_xlim(-0.5, 2.5)  # Expanded padding for 3 ticks
         
         axes[0].set_ylabel("Adjusted EMM (nm)")
-        axes[0].set_title("EV Size")
+        axes[0].set_title("Palmitelaidic acid")
         
         # Optional: Add significance brackets between specific pairs (e.g., index 0 and 2)
         # add_bracket(axes[0], 0, 2, y_val, h_val, "* p < 0.05")
