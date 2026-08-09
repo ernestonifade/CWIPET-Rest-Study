@@ -215,8 +215,8 @@ def render_figure3():
     selected_view = st.selectbox(
         "Select Section View:",
         [
-            '🔥 Heatmap: Time × Group Interactions (19 Candidates)',
-            '🧬 Pathway Enrichment: Reactome/KEGG Analysis (19 Candidates)',
+            '🔥 Heatmap: Time × Group Interactions Effect',
+            '🧬 Est Marginal Mean Plot: Group Effect',
             '📄 RM-ANCOVA Model Summary (Main & Interaction Effects)',
             '🔍 Post-Hoc Pairwise Contrasts (emmeans)'
         ]
@@ -224,31 +224,7 @@ def render_figure3():
 
     st.markdown("---")
 
-    if selected_view == '📊 Figure 3A–C: PCA & PERMANOVA Trio (Baseline, Post-All, Post-19)':
-        st.markdown("""
-        <div style="background-color: #f8f9fa; border-left: 4px solid #007bff; padding: 10px 14px; margin-bottom: 12px; border-radius: 4px; font-size: 11px; line-height: 1.5; color: #343a40;">
-            <b>Figure 3A–C (Multivariate Profile Discrimination):</b> Side-by-side PCA score plots comparing biological sex clustering at Baseline (Panel A), Post-Exercise across all proteins (Panel B), and Post-Exercise restricted to the 19 interaction candidates (Panel C). Corresponding PERMANOVA Pseudo-<i>F</i> and FDR statistics are summarized below.
-        </div>
-        """, unsafe_allow_html=True)
-        
-        fig = render_pca_trio(pca_scores_df)
-        st.pyplot(fig)
-
-        disp_perm = perm_df.copy()
-        if not disp_perm.empty:
-            if 'Centroid Distance (PC1-2)' in disp_perm.columns:
-                disp_perm['Centroid Distance (PC1-2)'] = disp_perm['Centroid Distance (PC1-2)'].round(2)
-            if 'Pseudo-F Statistic' in disp_perm.columns:
-                disp_perm['Pseudo-F Statistic'] = disp_perm['Pseudo-F Statistic'].round(2)
-            if 'p_value_raw' in disp_perm.columns:
-                disp_perm['p_value_raw'] = disp_perm['p_value_raw'].apply(lambda p: f"{p:.4f}" if pd.notnull(p) and p >= 0.0001 else ("< 0.0001" if pd.notnull(p) else "N/A"))
-            if 'p_value_FDR' in disp_perm.columns:
-                disp_perm['p_value_FDR'] = disp_perm['p_value_FDR'].apply(lambda p: f"{p:.4f}" if pd.notnull(p) and p >= 0.0001 else ("< 0.0001" if pd.notnull(p) else "N/A"))
-            
-            st.markdown("<b>📊 Statistical Summary: PERMANOVA & PC Centroid Separation (Male vs. Female)</b>", unsafe_allow_html=True)
-            st.dataframe(disp_perm, use_container_width=True)
-
-    elif selected_view == '🔥 Heatmap: Time × Group Interactions (19 Candidates)':
+    if selected_view == '🔥 Heatmap: Time × Group Interactions (19 Candidates)':
         st.markdown("""
         <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 14px; margin-bottom: 12px; border-radius: 4px; font-size: 11px; color: #856404;">
             <b>Figure 3A (Candidate Heatmap):</b> Relative fold change dynamics for 19 candidate proteins meeting nominal significance (<i>p</i><sub>raw</sub> &lt; 0.05) for Time × Group interaction across recovery.
@@ -259,91 +235,205 @@ def render_figure3():
             long_df=fig3_long_df,
             full_anova_results=ancova_df,
             id_col='Subject_ID', sex_col='sex', time_col='time', prot_col='Protein', value_col='Value',
-            time_order=('baseline', '3min', '1hr', '2hrs'),
-            time_display={'3min': '3min', '1hr': '1hr', '2hrs': '2hrs'},
-            sex_order=('M', 'F'),
+            time_order=('baseline', '10min', '2hrs'),
+            time_display={'10min': '10min', '2hrs': '2hrs'},
+            sex_order=('22°C', '15°C', '8°C'),
             use_p_col='p_value_raw', alpha=0.05,
             effect_term='TimePoint:Group',
             title=None
         )
         st.pyplot(fig_hm)
 
-    elif selected_view == '🧬 Pathway Enrichment: Reactome/KEGG Analysis (19 Candidates)':
-        st.markdown("""
-        <div style="background-color: #e2e3e5; border-left: 4px solid #383d41; padding: 10px 14px; margin-bottom: 12px; border-radius: 4px; font-size: 11px; color: #383d41;">
-            <b>Figure 3B (Pathway Enrichment):</b> Over-Representation Analysis mapping 19 candidate interaction proteins to functional Reactome/KEGG biological networks.
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.subheader("Pathway Enrichment: Sex Divergent Response Proteins")
-        fig = render_pathway_enrichment_bubble_from_df(
-            database_name="All", max_pvalue=0.05
-        )
-        if fig:
-            st.pyplot(fig)
-            import io
-            buf = io.BytesIO()
-            fig.savefig(buf, format="svg", bbox_inches="tight")
-            buf.seek(0)
-            
-            st.download_button(
-                label="📥 Download Editable Vector (SVG)",
-                data=buf,
-                file_name="pathway_enrichment_protein_divergence.svg",
-                mime="image/svg+xml",
-            ) 
+    elif selected_view == 'Est Marginal Mean Plot: Group Effect':
+        fig, axes = plt.subplots(1, 2, figsize=(6.5, 3.5), layout='constrained')
+        df_emm = pd.DataFrame({
+             'Metabolite': ['IL-26', 'IL-26', 'IL-26', 'Aminomalonic acid', 'Aminomalonic acid', 'Aminomalonic acid', 'IL-11', 'IL-11', 'IL-11', 'Palmitelaidic acid', 'Palmitelaidic acid', 'Palmitelaidic acid'],
+             'Group': ['22°C', '15°C', '8°C', '22°C', '15°C', '8°C', '22°C', '15°C', '8°C', '22°C', '15°C', '8°C'],
+             'EMM': [6.29, 14.81, 4.79, -3.19, 0.27, 0.23, 0.62, 1.03, 0.24, -3.80, -1.93, -4.08],
+             'CI_lower': [1.47, 9.85, -0.03, -4.68, -1.21, -1.23, 0.35, 0.76, -0.02, -5.02, -3.15, -5.28],
+             'CI_upper': [11.11, 19.76, 9.61, -1.71, 1.74, 1.69, 0.90, 1.30, 0.51, -2.57, -0.70, -2.90],
+             'SE': [2.34, 2.41, 2.34, 0.72, 0.72, 0.71, 0.13, 0.13, 0.13, 0.60, 0.60, 0.60]
+         })
         
-        file_candidates = [
-            "data/enrichment_permutation_results_for_interacting_proteins.csv",
-            "../data/enrichment_permutation_results_for_interacting_proteins.csv",
-            "enrichment_permutation_results_for_interacting_proteins.csv",
-            "enrichment_permutation_results_with_fdr_and_proteins.xlsx",
-        ]
+        # Subplot 1: 
+        sub_size = df_emm[df_emm["Metabolite"] == "IL-26"]
         
-        filepath = None
-        for path in file_candidates:
-          if os.path.exists(path):
-            filepath = path
-            break
+        # Define your custom group order
+        group_order = ["22°C", "15°C", "8°C"]
         
-        if filepath:
-          if filepath.endswith(".xlsx") or filepath.endswith(".xls"):
-            master_results_df = pd.read_excel(filepath)
+        for idx, row in sub_size.iterrows():
+          # Map group names to integer x-positions (0, 1, 2)
+          group_val = row["Group"]
+          if group_val in group_order:
+            x_pos = group_order.index(group_val)
           else:
-            master_results_df = pd.read_csv(filepath)
+            continue
         
-          # 2. Display the contributing proteins table below your plot
-          st.subheader("Pathway Protein Mapping")
-          st.write(
-              "Inspect which of your candidate proteins contributed to each significant"
-              " pathway:"
-          )
+          # Define custom markers and colors for each of the 3 groups
+          markers = ["o", "s", "^"]  # circle, square, triangle
+          colors = ["#f57a00", "#00f5d4", "#002df5"]  # distinct colors for each group
         
-          # Filter for significant/overlapping results
-          display_df = master_results_df[
-              (master_results_df["Observed_Overlap"] > 0)
-              & (master_results_df["Empirical_P_Value"] <= 0.05)
-          ].sort_values(by="Empirical_P_Value")
-        
-          # Renders the searchable table with custom search & reset button
-          render_searchable_table(
-              df=display_df,
-              key_prefix="pathway_table",
-              columns_to_show=[
-                  "Database",
-                  "Pathway",
-                  "Observed_Overlap",
-                  "Mean_Random_Overlap",
-                  "Empirical_P_Value",
-                  "FDR_q_val",
-                  "Contributing_Proteins",
+          axes[0].errorbar(
+              x_pos,
+              row["EMM"],
+              yerr=[
+                  [row["EMM"] - row["CI_lower"]],
+                  [row["CI_upper"] - row["EMM"]],
               ],
+              fmt=markers[x_pos],
+              color=colors[x_pos],
+              capsize=5,
+              markersize=7,
           )
-        else:
-          st.warning(
-              "⚠️ Results file not found in GitHub paths. Please ensure the analysis"
-              " script has been run and saved."
+        
+        # Configure axes for 3 distinct positions
+        axes[0].set_xticks([0, 1, 2])
+        axes[0].set_xticklabels(group_order)
+        axes[0].set_xlim(-0.5, 2.5)  # Expanded padding for 3 ticks
+        
+        axes[0].set_ylabel("Adjusted EMM (nm)")
+        axes[0].set_title("EV Size")
+        
+        # Optional: Add significance brackets between specific pairs (e.g., index 0 and 2)
+         add_bracket(axes[0], 0, 2, y_val, h_val, "* p < 0.05")
+        
+        axes[0].grid(axis="y", linestyle="--", alpha=0.5)
+
+        # Subplot 2: 
+        sub_size = df_emm[df_emm["Metabolite"] == "Aminomalonic acid"]
+
+        # Define your custom group order
+        group_order = ["22°C", "15°C", "8°C"]
+        
+        for idx, row in sub_size.iterrows():
+          # Map group names to integer x-positions (0, 1, 2)
+          group_val = row["Group"]
+          if group_val in group_order:
+            x_pos = group_order.index(group_val)
+          else:
+            continue
+        
+          # Define custom markers and colors for each of the 3 groups
+          markers = ["o", "s", "^"]  # circle, square, triangle
+          colors = ["#f57a00", "#00f5d4", "#002df5"]  # distinct colors for each group
+        
+          axes[0].errorbar(
+              x_pos,
+              row["EMM"],
+              yerr=[
+                  [row["EMM"] - row["CI_lower"]],
+                  [row["CI_upper"] - row["EMM"]],
+              ],
+              fmt=markers[x_pos],
+              color=colors[x_pos],
+              capsize=5,
+              markersize=7,
           )
+        
+        # Configure axes for 3 distinct positions
+        axes[0].set_xticks([0, 1, 2])
+        axes[0].set_xticklabels(group_order)
+        axes[0].set_xlim(-0.5, 2.5)  # Expanded padding for 3 ticks
+        
+        axes[0].set_ylabel("Adjusted EMM (nm)")
+        axes[0].set_title("EV Size")
+        
+        # Optional: Add significance brackets between specific pairs (e.g., index 0 and 2)
+         add_bracket(axes[0], 0, 2, y_val, h_val, "* p < 0.05")
+        
+        axes[0].grid(axis="y", linestyle="--", alpha=0.5)
+
+        #Subplot 3
+        sub_size = df_emm[df_emm["Metabolite"] == "IL-11"]
+
+        # Define your custom group order
+        group_order = ["22°C", "15°C", "8°C"]
+        
+        for idx, row in sub_size.iterrows():
+          # Map group names to integer x-positions (0, 1, 2)
+          group_val = row["Group"]
+          if group_val in group_order:
+            x_pos = group_order.index(group_val)
+          else:
+            continue
+        
+          # Define custom markers and colors for each of the 3 groups
+          markers = ["o", "s", "^"]  # circle, square, triangle
+          colors = ["#f57a00", "#00f5d4", "#002df5"]  # distinct colors for each group
+        
+          axes[0].errorbar(
+              x_pos,
+              row["EMM"],
+              yerr=[
+                  [row["EMM"] - row["CI_lower"]],
+                  [row["CI_upper"] - row["EMM"]],
+              ],
+              fmt=markers[x_pos],
+              color=colors[x_pos],
+              capsize=5,
+              markersize=7,
+          )
+        
+        # Configure axes for 3 distinct positions
+        axes[0].set_xticks([0, 1, 2])
+        axes[0].set_xticklabels(group_order)
+        axes[0].set_xlim(-0.5, 2.5)  # Expanded padding for 3 ticks
+        
+        axes[0].set_ylabel("Adjusted EMM (nm)")
+        axes[0].set_title("EV Size")
+        
+        # Optional: Add significance brackets between specific pairs (e.g., index 0 and 2)
+        # add_bracket(axes[0], 0, 2, y_val, h_val, "* p < 0.05")
+        
+        axes[0].grid(axis="y", linestyle="--", alpha=0.5)
+
+        #Subplot4 
+        sub_size = df_emm[df_emm["Metabolite"] == "Palmitelaidic acid"]
+
+        # Define your custom group order
+        group_order = ["22°C", "15°C", "8°C"]
+        
+        for idx, row in sub_size.iterrows():
+          # Map group names to integer x-positions (0, 1, 2)
+          group_val = row["Group"]
+          if group_val in group_order:
+            x_pos = group_order.index(group_val)
+          else:
+            continue
+        
+          # Define custom markers and colors for each of the 3 groups
+          markers = ["o", "s", "^"]  # circle, square, triangle
+          colors = ["#f57a00", "#00f5d4", "#002df5"]  # distinct colors for each group
+        
+          axes[0].errorbar(
+              x_pos,
+              row["EMM"],
+              yerr=[
+                  [row["EMM"] - row["CI_lower"]],
+                  [row["CI_upper"] - row["EMM"]],
+              ],
+              fmt=markers[x_pos],
+              color=colors[x_pos],
+              capsize=5,
+              markersize=7,
+          )
+        
+        # Configure axes for 3 distinct positions
+        axes[0].set_xticks([0, 1, 2])
+        axes[0].set_xticklabels(group_order)
+        axes[0].set_xlim(-0.5, 2.5)  # Expanded padding for 3 ticks
+        
+        axes[0].set_ylabel("Adjusted EMM (nm)")
+        axes[0].set_title("EV Size")
+        
+        # Optional: Add significance brackets between specific pairs (e.g., index 0 and 2)
+        # add_bracket(axes[0], 0, 2, y_val, h_val, "* p < 0.05")
+        
+        axes[0].grid(axis="y", linestyle="--", alpha=0.5)
+        
+        plt.suptitle("Estimated Marginal Means (Baseline Adjusted)", fontweight='bold')
+        st.pyplot(fig)
+
     elif selected_view == '📄 RM-ANCOVA Model Summary (Main & Interaction Effects)':
         st.markdown("""
         <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 14px; margin-bottom: 12px; border-radius: 4px; font-size: 12px; line-height: 1.5; color: #856404;">
