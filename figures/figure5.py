@@ -155,3 +155,29 @@ def render_figure5_top_interactions(lmm_df, final_workspace):
 
   plt.subplots_adjust(top=0.88, hspace=0.3, wspace=0.25)
   return fig
+
+def render_figure2():
+    st.title("🧬 Figure 5: Ordinary Least Regressions-Modal")
+    st.markdown("Explore How Baseline Body Metrics Modulate Cytokine and Metabolite Responses Under Different Degrees of Immersion ")
+
+    data = load_fig2_results()
+
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "1️⃣ CWI x Bodymetrics Interaction on Metabolites",
+        "2️⃣ Table: CWI x Bodymetrics Interaction on Metabolites",
+    ])
+
+    with tab1:
+        st.subheader("Figure 5: Top Multi-Omic Interactions Grid")
+        render_figure5_top_interactions(data['Bodymetric_Met'], data['Work_Space'])
+        if fig_to_display is not None:
+            st.pyplot(fig_to_display)
+
+    with tab2:
+        render_clustermap(data['cyto_rm'], 'Repeated Measures: Metabolites vs. Cytokines')
+
+    with tab3:
+        render_searchable_table(data['cyto_rm'], "Metabolites vs. Cytokines")
+
+    with tab4:
+        render_partial_corr_view(data['cyto_baseline'], data['cyto_delta'], "Metabolites vs. Cytokines")
