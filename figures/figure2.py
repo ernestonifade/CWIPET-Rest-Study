@@ -135,17 +135,15 @@ def render_searchable_table(df_input, title_prefix):
 def render_partial_corr_view(baseline_df, delta_df, title_prefix):
     st.subheader(f"{title_prefix} - Cross-Sectional & Delta Partial Correlation Dynamics")
     
-    time_points = ["Baseline (Time 1)", "Delta (Time 2 vs Time 1)", "Delta (Time 3 vs Time 1)", "Delta (Time 4 vs Time 1)"]
+    time_points = ["Baseline (Time 1)", "Delta (Time 2 vs Time 1)", "Delta (Time 3 vs Time 1)"]
     selected_time = st.radio("⏱️ Jump to Time Point / Delta Window:", time_points, horizontal=True, key=f"radio_{title_prefix}")
 
     if "Baseline" in selected_time:
         active_df = baseline_df.copy()
     elif "Time 2" in selected_time:
         active_df = delta_df[delta_df['TimeWindow'] == 'delta_time2_vs_time1'].copy() if not delta_df.empty else pd.DataFrame()
-    elif "Time 3" in selected_time:
-        active_df = delta_df[delta_df['TimeWindow'] == 'delta_time3_vs_time1'].copy() if not delta_df.empty else pd.DataFrame()
     else:
-        active_df = delta_df[delta_df['TimeWindow'] == 'delta_time4_vs_time1'].copy() if not delta_df.empty else pd.DataFrame()
+        active_df = delta_df[delta_df['TimeWindow'] == 'delta_time3_vs_time1'].copy() if not delta_df.empty else pd.DataFrame()
 
     if active_df.empty:
         st.warning("⚠️ Data unavailable for the selected window slice.")
@@ -182,19 +180,14 @@ def render_figure2():
     ])
 
     with tab1:
-        render_clustermap(data['cyto_rm'], 'Repeated Measures: Proteins vs. Cytokines', 'Cytokines', 'Proteins')
+        render_clustermap(data['cyto_baseline'], 'Baseline: Metabolites vs. Cytokines')
 
     with tab2:
-        render_clustermap(data['blood_rm'], 'Repeated Measures: Proteins vs. Blood Cells', 'Blood Parameters', 'Proteins')
+        render_clustermap(data['cyto_rm'], 'Repeated Measures: Metabolites vs. Cytokines')
 
     with tab3:
-        render_searchable_table(data['cyto_rm'], "Proteins vs. Cytokines")
+        render_searchable_table(data['cyto_rm'], "Metabolites vs. Cytokines")
 
     with tab4:
-        render_searchable_table(data['blood_rm'], "Proteins vs. Blood Cells")
+        render_partial_corr_view(data['cyto_baseline'], data['cyto_delta'], "Metabolites vs. Cytokines")
 
-    with tab5:
-        render_partial_corr_view(data['cyto_baseline'], data['cyto_delta'], "Proteins vs. Cytokines")
-
-    with tab6:
-        render_partial_corr_view(data['blood_baseline'], data['blood_delta'], "Proteins vs. Blood Cells")
