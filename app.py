@@ -9,12 +9,11 @@ from figures.figure3 import load_fig3_results, render_figure3
 from figures.figure4 import load_fig4_results, render_figure4
 from figures.figure5 import load_fig5_results, render_figure5
 from figures.figure6 import load_fig6_results, render_figure6
-from figures.figure7 import load_fig7_results, render_figure7
 from utils import render_searchable_table
 
 # --- 1. STREAMLIT PAGE CONFIGURATION (WIDE & OPEN) ---
 st.set_page_config(
-    page_title="GLYMREG EV Study Dashboard",
+    page_title="CWIPET Rest Study Dashboard",
     page_icon="🧬",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -71,7 +70,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.title("🧬 GLYMREG Extracellular Vesicle Study")
+st.title("🧬 Cold-Water Immersion Rest Study")
 st.caption("Interactive Manuscript Dashboard & Statistical Summary")
 st.markdown("---")
 
@@ -80,15 +79,14 @@ st.sidebar.header("📌 Navigation")
 selected_figure = st.sidebar.radio(
     "Select Figure:",
     [
-        "Figure 1: EV Size Skewness",
-        "Figure 2: Extracellular Vesicles (Concentration, Size & Correlation)",
-        "Figure 3: Proteomics (518 Panel)",
-        "Figure 4: Cytokine Analysis",
-        "Figure 5: Protein vs Cytokine vs Blood Correlation",
-        "Figure 6: EV vs Protein, Cytokine vs Blood Correlations",
-        "Figure 7: Pathway Enrichment Protein, Cytokine Correlations",
-        "Figure 8: Biophysical predictors of EV concentration shifts",
-        "Figure 9: Biophysical predictors of EV size shifts",
+        "Figure 1: Metabolite and Cytokine responses to different degrees of CWI",
+        "Figure 2: Metabolite and Cytokine correlations in response to CWI",
+        "Figure 3: Pathway enrichment correlating cytokines and metabolites",
+        "Figure 4: Body temperatures responses to different degrees of CWI",
+        "Figure 5: Metabolite response to CWI given bodymetrics",
+        "Figure 6: Cytokine response to CWI given bodymetrics and bodytemperatures",
+        
+        
     ],
     index=0,
 )
@@ -117,11 +115,11 @@ def export_sheets_to_excel(filename, sheets_dict):
 
 
 # --- 3. PAGE ROUTING & RENDER CALLS ---
-if selected_figure == "Figure 1: EV Size Skewness":
+if selected_figure == "Figure 1: Metabolite and Cytokine responses to different degrees of CWI":
   render_figure1()
 elif (
     selected_figure
-    == "Figure 2: Extracellular Vesicles (Concentration, Size & Correlation)"
+    == "Figure 2: Metabolite and Cytokine correlations in response to CWI"
 ):
   render_figure2()
 elif selected_figure == "Figure 3: Proteomics (518 Panel)":
