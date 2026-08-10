@@ -12,15 +12,43 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
+@st.cache_data
+def load_fig5_results():
+    results_dir = 'results'
+    def safe_read(filename):
+        path = os.path.join(results_dir, filename)
+        if os.path.exists(path):
+            return pd.read_csv(path)
+        return pd.DataFrame()
+
+    data = {
+        'Bodymetric_Met': safe_read('Bodymetric_Met Omni_Multi_Omic_Interaction_Master_Matrix.csv')
+    }
+    return data
+
+
 def render_figure5_top_interactions(lmm_df, final_workspace):
   """Renders an automated 2x2 multi-panel regression grid of the top four
 
   interactions for Figure 5 in Streamlit.
   """
   # Set publication style configurations
-  sns.set_theme(style="ticks")
-  plt.rcParams["font.family"] = "sans-serif"
-  plt.rcParams["font.size"] = 10
+  # --- MATPLOTLIB GLOBAL TYPOGRAPHY SETTINGS ---
+  plt.rcParams['svg.fonttype'] = 'none'
+  plt.rcParams.update({
+      'font.family': 'sans-serif',
+      'font.sans-serif': ['Arial', 'Helvetica', 'DejaVu Sans'],
+      'font.size': 8,
+      'axes.titlesize': 9,
+      'axes.labelsize': 8,
+      'xtick.labelsize': 7,
+      'ytick.labelsize': 7,
+      'legend.fontsize': 7,
+      'axes.labelweight': 'bold',
+      'axes.titleweight': 'bold',
+      'figure.dpi': 300,
+      'savefig.dpi': 600
+  })
 
   # 1. Isolate the top 4 strongest individual interaction rows
   top_4_interactions = lmm_df.head(4)
