@@ -232,7 +232,7 @@ def render_figure5():
     st.title("🧬 Figure 5: Ordinary Least Regressions-Modal")
     st.markdown("Explore How Baseline Body Metrics Modulate Cytokine and Metabolite Responses Under Different Degrees of Immersion ")
 
-    data = load_fig2_results()
+    data = load_fig5_results()
 
     tab1, tab2, tab3, tab4 = st.tabs([
         "1️⃣ CWI x Bodymetrics Interaction on Metabolites",
