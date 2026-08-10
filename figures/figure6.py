@@ -30,73 +30,115 @@ def load_fig6_results():
     return data
 
 
-def render_figure5_top_interactions(lmm_df, final_workspace):
-  """Renders an automated 2x2 multi-panel regression grid of the top four
+def render_side_by_side_interaction_plot(
+    lmm_df_1,
+    workspace_1,
+    target_metric_1,
+    target_molecule_1,
+    lmm_df_2,
+    workspace_2,
+    target_metric_2,
+    target_molecule_2,
+    layout_preset='micro',
+):
+  """Renders two individual interaction plots side by side from two different
 
-  interactions for Figure 5 in Streamlit.
+  results dataframes and workspaces, optimized for Streamlit or publication.
   """
-  # Set publication style configurations
-  # --- MATPLOTLIB GLOBAL TYPOGRAPHY SETTINGS ---
-  plt.rcParams['svg.fonttype'] = 'none'
-  plt.rcParams.update({
-      'font.family': 'sans-serif',
-      'font.sans-serif': ['Arial', 'Helvetica', 'DejaVu Sans'],
-      'font.size': 8,
-      'axes.titlesize': 9,
-      'axes.labelsize': 8,
-      'xtick.labelsize': 7,
-      'ytick.labelsize': 7,
-      'legend.fontsize': 7,
-      'axes.labelweight': 'bold',
-      'axes.titleweight': 'bold',
-      'figure.dpi': 300,
-      'savefig.dpi': 600
-  })
+  # Publication style configurations
+  mpl.rcParams['svg.fonttype'] = 'none'
+  if layout_preset == 'micro':
+    plt.rcParams.update({
+        'font.family': 'sans-serif',
+        'font.sans-serif': ['Arial', 'Helvetica'],
+        'font.size': 8,
+        'font.weight': 'bold',
+        'axes.titlesize': 8.5,
+        'axes.titleweight': 'bold',
+        'axes.labelsize': 8,
+        'axes.labelweight': 'bold',
+        'xtick.labelsize': 7,
+        'ytick.labelsize': 7,
+        'axes.linewidth': 1.0,
+        'lines.linewidth': 1.2,
+        'savefig.bbox': 'standard',
+    })
+  else:
+    plt.rcParams.update({
+        'font.family': 'sans-serif',
+        'font.sans-serif': ['Arial', 'Helvetica'],
+        'font.size': 9,
+        'font.weight': 'bold',
+        'axes.titlesize': 10,
+        'axes.titleweight': 'bold',
+        'axes.labelsize': 9,
+        'axes.labelweight': 'bold',
+        'xtick.labelsize': 8,
+        'ytick.labelsize': 8,
+        'axes.linewidth': 1.2,
+        'lines.linewidth': 1.5,
+        'savefig.bbox': 'tight',
+    })
 
-  # 1. Isolate the top 4 strongest individual interaction rows
-  top_4_interactions = lmm_df.head(4)
-  if top_4_interactions.empty:
-    st.warning("No interaction data available to plot.")
-    return None
+  # Initialize a 1-row, 2-column side-by-side layout
+  fig, axes = plt.subplots(1, 2, figsize=(7.5, 3.5), dpi=150)
 
-  # 2. Initialize a 2x2 multi-panel layout
-  fig, axes = plt.subplots(2, 2, figsize=(11, 9), dpi=300)
-  axes = axes.flatten()  # Flatten into a 1D array to loop easily
-
-  # Define high-contrast, colorblind-friendly cohort palette
   custom_palette = {
-      "Group_8C": "#002df5",  # Electric Blue (Extreme Cold)
-      "Group_15C": "#00f5d4",  # Neon Cyan (Cool Water)
-      "Group_22C": "#f57a00",  # Deep Orange (Control)
+      'Group_22C': '#f57a00',  # Deep Orange (Control)
+      'Group_15C': '#00f5d4',  # Neon Cyan (Cool Water)
+      'Group_8C': '#002df5',  # Electric Blue (Extreme Cold)
   }
 
-  # 3. Step through your top 4 hits and construct regression profiles
-  for i, (_, row) in enumerate(top_4_interactions.iterrows()):
-    if i >= len(axes):
-      break
-    metric_col = row["Physical_Metric"]
-    molecule_col = f"{row['Molecular_Target']}_avg_delta"
-    ax = axes[i]
+  plots_data = [
+      (lmm_df_1, workspace_1, target_metric_1, target_molecule_1, axes[0]),
+      (lmm_df_2, workspace_2, target_metric_2, target_molecule_2, axes[1]),
+  ]
 
-    # Check if columns exist in workspace before plotting
-    if metric_col not in final_workspace.columns or molecule_col not in final_workspace.columns:
+  for lmm_df, workspace, t_metric, t_mol, ax in plots_data:
+    # Extract specific row or fallback
+    specific_row = lmm_df[
+        (lmm_df['Physical_Metric'] == t_metric)
+        & (lmm_df['Molecular_Target'] == t_mol)
+    ]
+    if specific_row.empty and not lmm_df.empty:
+      row = lmm_df.iloc[0]
+    elif not specific_row.empty:
+      row = specific_row.iloc[0]
+    else:
       ax.text(
           0.5,
           0.5,
-          "Columns not found",
-          ha="center",
-          va="center",
+          'No Data Available',
+          ha='center',
+          va='center',
           transform=ax.transAxes,
       )
       continue
 
-    # Generate separate group slope trends with 95% confidence intervals
+    metric_col = row['Physical_Metric']
+    molecule_col = f"{row['Molecular_Target']}_avg_delta"
+
+    if (
+        metric_col not in workspace.columns
+        or molecule_col not in workspace.columns
+    ):
+      ax.text(
+          0.5,
+          0.5,
+          'Columns Missing in Workspace',
+          ha='center',
+          va='center',
+          transform=ax.transAxes,
+      )
+      continue
+
+    # Plot regression trends for each cohort group
     for grp, color, lbl in [
-        ("Group_8C", custom_palette["Group_8C"], "8°C"),
-        ("Group_15C", custom_palette["Group_15C"], "15°C"),
-        ("Group_22C", custom_palette["Group_22C"], "22°C"),
+        ('Group_22C', custom_palette['Group_22C'], '22°C'),
+        ('Group_15C', custom_palette['Group_15C'], '15°C'),
+        ('Group_8C', custom_palette['Group_8C'], '8°C'),
     ]:
-      subset = final_workspace[final_workspace["CWI_Group"] == grp]
+      subset = workspace[workspace['CWI_Group'] == grp]
       if not subset.empty:
         sns.regplot(
             x=metric_col,
@@ -105,57 +147,47 @@ def render_figure5_top_interactions(lmm_df, final_workspace):
             color=color,
             label=lbl,
             ax=ax,
-            scatter_kws={"s": 25, "alpha": 0.7},
-            line_kws={"linewidth": 1.8},
+            scatter_kws={'s': 30, 'alpha': 0.75},
+            line_kws={'linewidth': 1.8},
         )
 
-    # Clean up axis labels
+    # Format axis labels
     clean_x = (
-        metric_col.replace("_", " ")
-        .replace("degC", "(°C)")
-        .replace("Percent", "%")
+        metric_col.replace('_', ' ')
+        .replace('degC', '(°C)')
+        .replace('Percent', '%')
+        + ' (Δ)'
     )
-    clean_y = row["Molecular_Target"].replace("_", " ") + " (Δ)"
+    clean_y = row['Molecular_Target'].replace('_', ' ') + ' (Δ)'
 
-    ax.set_xlabel(clean_x, fontweight="bold", fontsize=10)
-    ax.set_ylabel(clean_y, fontweight="bold", fontsize=10)
+    ax.set_xlabel(clean_x)
+    ax.set_ylabel(clean_y)
 
-    # Format subplot header with statistical metrics
-    p_val_str = (
-        f"{row['P_Value']:.5f}"
-        if "P_Value" in row and not pd.isna(row["P_Value"])
-        else "N/A"
+    # Header stats format
+    p_label = (
+        f"FDR q = {row['FDR_Adjusted_P']:.5f}"
+        if 'FDR_Adjusted_P' in row and not pd.isna(row['FDR_Adjusted_P'])
+        else f"p = {row['P_Value']:.5f}"
     )
-    r2_str = (
+    r2_val = (
         f"{row['Model_R2']:.2f}"
-        if "Model_R2" in row and not pd.isna(row["Model_R2"])
-        else "N/A"
+        if 'Model_R2' in row and not pd.isna(row['Model_R2'])
+        else 'N/A'
     )
     ax.set_title(
-        f"Panel {chr(65+i)}: p = {p_val_str} | R² = {r2_str}",
-        fontsize=10,
-        pad=8,
-        style="italic",
-        loc="left",
+        f'{clean_y}\n({p_label} | R² = {r2_val})', fontsize=8.5, loc='center'
     )
 
-    ax.grid(True, linestyle=":", alpha=0.5)
+    ax.grid(True, linestyle=':', alpha=0.5)
+    ax.legend(
+        frameon=True,
+        facecolor='white',
+        loc='upper left',
+        prop={'weight': 'bold', 'size': 6.5},
+    )
     sns.despine(ax=ax, trim=True)
 
-  # 4. Attach unified legend
-  handles, labels = axes[0].get_legend_handles_labels()
-  if handles:
-    fig.legend(
-        handles,
-        ["8°C (Extreme Cold)", "15°C (Cool Water)", "22°C (Control)"],
-        loc="upper center",
-        bbox_to_anchor=(0.5, 0.98),
-        ncol=3,
-        frameon=True,
-        facecolor="white",
-    )
-
-  plt.subplots_adjust(top=0.88, hspace=0.3, wspace=0.25)
+  plt.subplots_adjust(wspace=0.3)
   return fig
     
 
@@ -230,11 +262,11 @@ def render_ols_searchable_table(df_input, title_prefix):
       hide_index=True,
   )
 
-def render_figure5():
-    st.title("🧬 Figure 5: Ordinary Least Regressions-Modal")
-    st.markdown("Explore How Baseline Body Metrics Modulate Cytokine and Metabolite Responses Under Different Degrees of Immersion ")
+def render_figure6():
+    st.title("🧬 Figure 6: Ordinary Least Regressions-Modal")
+    st.markdown("Explore How Baseline Body Metrics and temperatures Modulate Cytokine Responses Under Different Degrees of Immersion ")
 
-    data = load_fig2_results()
+    data = load_fig6_results()
 
     tab1, tab2, tab3, tab4 = st.tabs([
         "1️⃣ CWI x Bodymetrics Interaction on Metabolites",
