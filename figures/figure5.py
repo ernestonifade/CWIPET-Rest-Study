@@ -1,6 +1,15 @@
+import os
+import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib as mpl
+from matplotlib.lines import Line2D
 import seaborn as sns
+from matplotlib.patches import Ellipse
 import streamlit as st
+from utils import render_searchable_table
+import warnings
+warnings.filterwarnings("ignore")
 
 
 def render_figure5_top_interactions(lmm_df, final_workspace):
