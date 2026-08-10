@@ -183,7 +183,7 @@ elif selected_figure == "Figure 2: Metabolite and Cytokine correlations in respo
         mime=(
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         ),
-        key=f"dl_fig5_{uuid.uuid4()}",
+        key=f"dl_fig2_{uuid.uuid4()}",
     )
 
 elif (
@@ -256,6 +256,30 @@ elif (
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         ),
         key=f"dl_fig4_{uuid.uuid4()}",
+    )
+
+elif selected_figure == "Figure 5: Metabolite response to CWI given bodymetrics":
+  data = load_fig5_results()
+  out_name = "Figure5_Metabolite response to CWI given bodymetrics_Report.xlsx"
+  export_sheets_to_excel(
+      out_name,
+      {
+          "Cyto_Metabolite_RM_Corr": data.get("cyto_rm"),
+          "Cyto_Metabolite_Baseline": data.get("cyto_baseline"),
+          "Cyto_Metabolite_Delta_Windows": data.get("cyto_delta"),
+          
+      },
+  )
+
+  with open(out_name, "rb") as f:
+    st.sidebar.download_button(
+        label="📥 Download Figure 5 Report (.xlsx)",
+        data=f,
+        file_name=out_name,
+        mime=(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        ),
+        key=f"dl_fig5_{uuid.uuid4()}",
     )
 
 
