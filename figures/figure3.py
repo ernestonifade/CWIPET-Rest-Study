@@ -202,7 +202,7 @@ def find_pathway_file(candidates):
 
 
 # --- MAIN RENDER FUNCTION FOR STREAMLIT ---
-def render_figure7():
+def render_figure3():
   # Define candidate filepaths for proteins and cytokines
   prot_candidates = [
       "data/enrichment_results_for_correlating_metabolites.csv",
