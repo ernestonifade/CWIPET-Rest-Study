@@ -265,6 +265,7 @@ elif selected_figure == "Figure 5: Metabolite response to CWI given bodymetrics"
       out_name,
       {
           "Metabolite response to CWI given bodymetrics": data.get("Bodymetric_Met"),
+          "Metabolite response to CWI given bodytemp": data.get("Bodytemp_Met"),
       },
   )
 
@@ -278,6 +279,30 @@ elif selected_figure == "Figure 5: Metabolite response to CWI given bodymetrics"
         ),
         key=f"dl_fig5_{uuid.uuid4()}",
     )
+
+elif selected_figure == "Figure 6: Cytokine response to CWI given bodymetrics and bodytemperatures":
+  data = load_fig6_results()
+  out_name = "Figure6_Cytokine response to CWI given bodymetrics and body temp_Report.xlsx"
+  export_sheets_to_excel(
+      out_name,
+      {
+          "Cytokine response to CWI given bodymetrics": data.get("Bodymetric_Cyt"),
+          "Cytokine response to CWI given bodytemp": data.get("Bodytemp_Cyt"),
+          
+      },
+  )
+
+  with open(out_name, "rb") as f:
+    st.sidebar.download_button(
+        label="📥 Download Figure 6 Report (.xlsx)",
+        data=f,
+        file_name=out_name,
+        mime=(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        ),
+        key=f"dl_fig6_{uuid.uuid4()}",
+    )
+
 
 
 
