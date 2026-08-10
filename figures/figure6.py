@@ -1,1 +1,251 @@
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+from matplotlib.lines import Line2D
+import seaborn as sns
+from matplotlib.patches import Ellipse
+import streamlit as st
+from utils import render_searchable_table
+import warnings
+warnings.filterwarnings("ignore")
 
+
+@st.cache_data
+def load_fig6_results():
+    results_dir = 'results'
+    def safe_read(filename):
+        path = os.path.join(results_dir, filename)
+        if os.path.exists(path):
+            return pd.read_csv(path)
+        return pd.DataFrame()
+
+    data = {
+        'Bodymetric_Cyt': safe_read('Bodymetric_Cyt Omni_Multi_Omic_Interaction_Master_Matrix.csv'),
+        'Work_Space_Bodymetric': safe_read('final_workspace_Bodymetric_Cyt Omni_Multi_Omic_Interaction_Master_Matrix.csv'),
+        'Bodytemp_Cyt': safe_read('Bodytemp_Cyt Omni_Multi_Omic_Interaction_Master_Matrix.csv'),
+        'Work_SpaceBodytemp': safe_read('final_workspace_Bodytemp_Cyt Omni_Multi_Omic_Interaction_Master_Matrix.csv')
+    }
+    return data
+
+
+def render_figure5_top_interactions(lmm_df, final_workspace):
+  """Renders an automated 2x2 multi-panel regression grid of the top four
+
+  interactions for Figure 5 in Streamlit.
+  """
+  # Set publication style configurations
+  # --- MATPLOTLIB GLOBAL TYPOGRAPHY SETTINGS ---
+  plt.rcParams['svg.fonttype'] = 'none'
+  plt.rcParams.update({
+      'font.family': 'sans-serif',
+      'font.sans-serif': ['Arial', 'Helvetica', 'DejaVu Sans'],
+      'font.size': 8,
+      'axes.titlesize': 9,
+      'axes.labelsize': 8,
+      'xtick.labelsize': 7,
+      'ytick.labelsize': 7,
+      'legend.fontsize': 7,
+      'axes.labelweight': 'bold',
+      'axes.titleweight': 'bold',
+      'figure.dpi': 300,
+      'savefig.dpi': 600
+  })
+
+  # 1. Isolate the top 4 strongest individual interaction rows
+  top_4_interactions = lmm_df.head(4)
+  if top_4_interactions.empty:
+    st.warning("No interaction data available to plot.")
+    return None
+
+  # 2. Initialize a 2x2 multi-panel layout
+  fig, axes = plt.subplots(2, 2, figsize=(11, 9), dpi=300)
+  axes = axes.flatten()  # Flatten into a 1D array to loop easily
+
+  # Define high-contrast, colorblind-friendly cohort palette
+  custom_palette = {
+      "Group_8C": "#002df5",  # Electric Blue (Extreme Cold)
+      "Group_15C": "#00f5d4",  # Neon Cyan (Cool Water)
+      "Group_22C": "#f57a00",  # Deep Orange (Control)
+  }
+
+  # 3. Step through your top 4 hits and construct regression profiles
+  for i, (_, row) in enumerate(top_4_interactions.iterrows()):
+    if i >= len(axes):
+      break
+    metric_col = row["Physical_Metric"]
+    molecule_col = f"{row['Molecular_Target']}_avg_delta"
+    ax = axes[i]
+
+    # Check if columns exist in workspace before plotting
+    if metric_col not in final_workspace.columns or molecule_col not in final_workspace.columns:
+      ax.text(
+          0.5,
+          0.5,
+          "Columns not found",
+          ha="center",
+          va="center",
+          transform=ax.transAxes,
+      )
+      continue
+
+    # Generate separate group slope trends with 95% confidence intervals
+    for grp, color, lbl in [
+        ("Group_8C", custom_palette["Group_8C"], "8°C"),
+        ("Group_15C", custom_palette["Group_15C"], "15°C"),
+        ("Group_22C", custom_palette["Group_22C"], "22°C"),
+    ]:
+      subset = final_workspace[final_workspace["CWI_Group"] == grp]
+      if not subset.empty:
+        sns.regplot(
+            x=metric_col,
+            y=molecule_col,
+            data=subset,
+            color=color,
+            label=lbl,
+            ax=ax,
+            scatter_kws={"s": 25, "alpha": 0.7},
+            line_kws={"linewidth": 1.8},
+        )
+
+    # Clean up axis labels
+    clean_x = (
+        metric_col.replace("_", " ")
+        .replace("degC", "(°C)")
+        .replace("Percent", "%")
+    )
+    clean_y = row["Molecular_Target"].replace("_", " ") + " (Δ)"
+
+    ax.set_xlabel(clean_x, fontweight="bold", fontsize=10)
+    ax.set_ylabel(clean_y, fontweight="bold", fontsize=10)
+
+    # Format subplot header with statistical metrics
+    p_val_str = (
+        f"{row['P_Value']:.5f}"
+        if "P_Value" in row and not pd.isna(row["P_Value"])
+        else "N/A"
+    )
+    r2_str = (
+        f"{row['Model_R2']:.2f}"
+        if "Model_R2" in row and not pd.isna(row["Model_R2"])
+        else "N/A"
+    )
+    ax.set_title(
+        f"Panel {chr(65+i)}: p = {p_val_str} | R² = {r2_str}",
+        fontsize=10,
+        pad=8,
+        style="italic",
+        loc="left",
+    )
+
+    ax.grid(True, linestyle=":", alpha=0.5)
+    sns.despine(ax=ax, trim=True)
+
+  # 4. Attach unified legend
+  handles, labels = axes[0].get_legend_handles_labels()
+  if handles:
+    fig.legend(
+        handles,
+        ["8°C (Extreme Cold)", "15°C (Cool Water)", "22°C (Control)"],
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.98),
+        ncol=3,
+        frameon=True,
+        facecolor="white",
+    )
+
+  plt.subplots_adjust(top=0.88, hspace=0.3, wspace=0.25)
+  return fig
+    
+
+def render_ols_searchable_table(df_input, title_prefix):
+  st.subheader(f'{title_prefix} - Multi-Omic Interactions Table')
+  if df_input.empty:
+    st.info('No records loaded.')
+    return
+
+  # Filter based on FDR-adjusted significance or raw interaction p-value
+  sig_col = (
+      'Significant_After_FDR'
+      if 'Significant_After_FDR' in df_input.columns
+      else 'Interaction_P_Value'
+  )
+  if sig_col == 'Significant_After_FDR':
+    filtered_df = df_input[df_input[sig_col] == True].copy()
+  else:
+    filtered_df = df_input[df_input[sig_col] < 0.05].copy()
+
+  col1, col2 = st.columns([3, 1])
+  with col1:
+    search_query = st.text_input(
+        f'🔍 Search {title_prefix} Features:',
+        '',
+        key=f'search_{title_prefix}',
+    )
+  with col2:
+    st.metric('Significant Interactions', len(filtered_df))
+
+  # Search across Physical Metrics or Molecular Targets
+  if search_query:
+    mask = (
+        filtered_df['Physical_Metric'].str.contains(
+            search_query, case=False, na=False
+        )
+        | filtered_df['Molecular_Target'].str.contains(
+            search_query, case=False, na=False
+        )
+    )
+    filtered_df = filtered_df[mask]
+
+  # Select columns matching your OLS schema
+  desired_cols = [
+      'Physical_Metric',
+      'Molecular_Target',
+      'Interaction_Contrast',
+      'Interaction_Beta',
+      'Interaction_P_Value',
+      'FDR_Adjusted_P',
+      'Significant_After_FDR',
+      'Model_R2',
+      'Simple_Slope_8C',
+      'Simple_Slope_8C_P',
+      'Simple_Slope_15C',
+      'Simple_Slope_15C_P',
+      'Simple_Slope_22C',
+      'Simple_Slope_22C_P',
+  ]
+  display_cols = [c for c in desired_cols if c in filtered_df.columns]
+
+  # Sort by FDR-adjusted p-value or interaction p-value
+  sort_col = (
+      'FDR_Adjusted_P'
+      if 'FDR_Adjusted_P' in filtered_df.columns
+      else 'Interaction_P_Value'
+  )
+
+  st.dataframe(
+      filtered_df[display_cols].sort_values(by=sort_col),
+      use_container_width=True,
+      hide_index=True,
+  )
+
+def render_figure5():
+    st.title("🧬 Figure 5: Ordinary Least Regressions-Modal")
+    st.markdown("Explore How Baseline Body Metrics Modulate Cytokine and Metabolite Responses Under Different Degrees of Immersion ")
+
+    data = load_fig2_results()
+
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "1️⃣ CWI x Bodymetrics Interaction on Metabolites",
+        "2️⃣ Table: CWI x Bodymetrics Interaction on Metabolites",
+    ])
+
+    with tab1:
+        st.subheader("Figure 5: Top Multi-Omic Interactions Grid")
+        render_figure5_top_interactions(data['Bodymetric_Met'], data['Work_Space'])
+        if fig_to_display is not None:
+            st.pyplot(fig_to_display)
+
+    with tab2:
+        render_searchable_table(data['Bodymetric_Met'], "Multi-Omic Interactions Table")
