@@ -246,10 +246,4 @@ def render_figure5():
             st.pyplot(fig_to_display)
 
     with tab2:
-        render_clustermap(data['cyto_rm'], 'Repeated Measures: Metabolites vs. Cytokines')
-
-    with tab3:
-        render_searchable_table(data['cyto_rm'], "Metabolites vs. Cytokines")
-
-    with tab4:
-        render_partial_corr_view(data['cyto_baseline'], data['cyto_delta'], "Metabolites vs. Cytokines")
+        render_searchable_table(data['Bodymetric_Met'], "Multi-Omic Interactions Table")
