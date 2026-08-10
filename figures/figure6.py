@@ -268,9 +268,10 @@ def render_figure6():
 
     data = load_fig6_results()
 
-    tab1, tab2, tab3, tab4 = st.tabs([
+    tab1, tab2, tab3= st.tabs([
         "1️⃣ CWI x Bodymetrics Interaction on Metabolites",
-        "2️⃣ Table: CWI x Bodymetrics Interaction on Metabolites",
+        "2️⃣ Table: CWI x Bodymetrics Interaction on Cytokines",
+        "2️⃣ Table: CWI x Bodytemp Interaction on Cytokines",
     ])
 
     with tab1:
