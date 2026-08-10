@@ -208,7 +208,7 @@ def plot_interaction_heatmap_19_proteins(
     return fig
 
 # --- MAIN RENDER FUNCTION FOR STREAMLIT ---
-def render_figure3():
+def render_figure4():
     ancova_df, posthoc_df, long_df, fig1_long_df = load_results()
 
     # Streamlit Selectbox replacing ipywidgets dropdown
