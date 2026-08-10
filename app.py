@@ -122,36 +122,32 @@ elif (
     == "Figure 2: Metabolite and Cytokine correlations in response to CWI"
 ):
   render_figure2()
-elif selected_figure == "Figure 3: Proteomics (518 Panel)":
+elif selected_figure == "Figure 3: Pathway enrichment correlating cytokines and metabolites":
   render_figure3()
-elif selected_figure == "Figure 4: Cytokine Analysis":
+elif selected_figure == "Figure 4: Body temperatures responses to different degrees of CWI":
   render_figure4()
-elif selected_figure == "Figure 5: Protein vs Cytokine vs Blood Correlation":
+elif selected_figure == "Figure 5: Metabolite response to CWI given bodymetrics":
   render_figure5()
-elif selected_figure == "Figure 6: EV vs Protein, Cytokine vs Blood Correlations":
+elif selected_figure == "Figure 6: Cytokine response to CWI given bodymetrics and bodytemperatures":
   render_figure6()
-elif (
-    selected_figure
-    == "Figure 7: Pathway Enrichment Protein, Cytokine Correlations"
-):
-  render_figure7()
-elif selected_figure == "Figure 8: Biophysical predictors of EV concentration shifts":
-  render_figure8()
-elif selected_figure == "Figure 9: Biophysical predictors of EV size shifts":
-  render_figure9()
+
 
 
 # --- 4. ONE-CLICK INSTANT EXPORT HANDLER ---
 st.sidebar.header("📥 Export Statistical Reports")
 
-if selected_figure == "Figure 1: EV Size Skewness":
-  stats_df, df_all = load_fig1_results()
-  out_name = "Figure1D_EV_Size_Skewness_Data.xlsx"
+if (
+    selected_figure
+    == "Figure 1: Metabolite and Cytokine responses to different degrees of CWI"
+):
+  ancova_df, posthoc_df, long_df = load_fig1_results()
+  out_name = "Figure1_EV_Full_Stats_Report.xlsx"
   export_sheets_to_excel(
       out_name,
       {
-          "EV_Size_Skewness_Wilcoxon_Stats": stats_df,
-          "Raw_EV_Data": df_all,
+          "RM_ANCOVA_Stats": ancova_df,
+          "PostHoc_Contrasts": posthoc_df,
+          "Raw_Data": long_df,
       },
   )
 
@@ -166,20 +162,16 @@ if selected_figure == "Figure 1: EV Size Skewness":
         key=f"dl_fig1_{uuid.uuid4()}",
     )
 
-elif (
-    selected_figure
-    == "Figure 2: Extracellular Vesicles (Concentration, Size & Correlation)"
-):
-  ancova_df, posthoc_df, corr_overall, corr_sex, long_df = load_fig2_results()
-  out_name = "Figure2_EV_Full_Stats_Report.xlsx"
+elif selected_figure == "Figure 2: Metabolite and Cytokine correlations in response to CWI":
+  data = load_fig2_results()
+  out_name = "Figure2_Metabolite_Cytokine_Corr_Report.xlsx"
   export_sheets_to_excel(
       out_name,
       {
-          "RM_ANCOVA_Stats": ancova_df,
-          "PostHoc_Contrasts": posthoc_df,
-          "Correlation_Overall": corr_overall,
-          "Correlation_Sex": corr_sex,
-          "Raw_Data": long_df,
+          "Cyto_Metabolite_RM_Corr": data.get("cyto_rm"),
+          "Cyto_Metabolite_Baseline": data.get("cyto_baseline"),
+          "Cyto_Metabolite_Delta_Windows": data.get("cyto_delta"),
+          
       },
   )
 
@@ -191,26 +183,41 @@ elif (
         mime=(
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         ),
-        key=f"dl_fig2_{uuid.uuid4()}",
+        key=f"dl_fig5_{uuid.uuid4()}",
     )
 
-elif selected_figure == "Figure 3: Proteomics (518 Panel)":
-  ancova_df, posthoc_df, pca_scores_df, perm_df, long_df, _ = load_fig3_results()
-  out_name = "Figure3_Proteomics_Full_Stats_Report.xlsx"
-  sheets_data = {
-      "RM_ANCOVA_Model_Stats": ancova_df,
-      "PostHoc_Pairwise_Contrasts": posthoc_df,
-      "PERMANOVA_Summary": perm_df,
-      "PCA_Scores_and_EV": pca_scores_df,
-      "Raw_Proteomic_Data": long_df,
-  }
-  for path in [
-      "data/enrichment_permutation_results_for_interacting_proteins.csv",
-      "enrichment_permutation_results_for_interacting_proteins.csv",
-  ]:
-    if os.path.exists(path):
-      sheets_data["Protein_Interaction_Pathway_Enrichment"] = pd.read_csv(path)
-      break
+elif (
+    selected_figure
+    == "Figure 3: Pathway enrichment correlating cytokines and metabolites"
+):
+  def find_pathway_file(candidates):
+    for path in candidates:
+      if os.path.exists(path):
+        return path
+    return None
+
+  out_name = "Pathway enrichment correlating cytokines and metabolites.xlsx"
+  prot_path = find_pathway_file([
+      "data/enrichment_results_for_correlating_metabolites.csv",
+      "../data/enrichment_results_for_correlating_metabolites.csv",
+      "enrichment_results_for_correlating_metabolites.csv",
+  ])
+  cyt_path = find_pathway_file([
+      "data/enrichment_results_for_correlating_cytokines.csv",
+      "../data/enrichment_results_for_correlating_cytokines.csv",
+      "enrichment_results_for_correlating_cytokines.csv",
+  ])
+
+  sheets_data = {}
+  if prot_path and os.path.exists(prot_path):
+    df_prot = pd.read_csv(prot_path)
+    if not df_prot.empty:
+      sheets_data["Metabolite_Pathways"] = df_prot
+
+  if cyt_path and os.path.exists(cyt_path):
+    df_cyt = pd.read_csv(cyt_path)
+    if not df_cyt.empty:
+      sheets_data["Cytokine_Pathways"] = df_cyt
 
   export_sheets_to_excel(out_name, sheets_data)
 
@@ -222,19 +229,21 @@ elif selected_figure == "Figure 3: Proteomics (518 Panel)":
         mime=(
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         ),
-        key=f"dl_fig3_{uuid.uuid4()}",
+        key=f"dl_fig7_{uuid.uuid4()}",
     )
 
-elif selected_figure == "Figure 4: Cytokine Analysis":
-  ancova_df, posthoc_df, df_emm, fig4_long_df = load_fig4_results()
-  out_name = "Figure4_Cytokine_Full_Stats_Report.xlsx"
+elif (
+    selected_figure
+    == "Figure 4: Body temperatures responses to different degrees of CWI"
+):
+  ancova_df, posthoc_df, long_df = load_fig4_results()
+  out_name = "Figure4_Full_Stats_Report.xlsx"
   export_sheets_to_excel(
       out_name,
       {
-          "RM_ANCOVA_Model_Stats": ancova_df,
-          "PostHoc_Pairwise_Contrasts": posthoc_df,
-          "Group_EMM_Summary": df_emm,
-          "Processed_Cytokine_Data": fig4_long_df,
+          "RM_ANCOVA_Stats": ancova_df,
+          "PostHoc_Contrasts": posthoc_df,
+          "Raw_Data": long_df,
       },
   )
 
@@ -249,176 +258,7 @@ elif selected_figure == "Figure 4: Cytokine Analysis":
         key=f"dl_fig4_{uuid.uuid4()}",
     )
 
-elif selected_figure == "Figure 5: Protein vs Cytokine vs Blood Correlation":
-  data = load_fig5_results()
-  out_name = "Figure5_MultiModal_Integration_Report.xlsx"
-  export_sheets_to_excel(
-      out_name,
-      {
-          "Cyto_Protein_RM_Corr": data.get("cyto_rm"),
-          "Blood_Protein_RM_Corr": data.get("blood_rm"),
-          "Cyto_Protein_Baseline": data.get("cyto_baseline"),
-          "Cyto_Protein_Delta_Windows": data.get("cyto_delta"),
-          "Blood_Protein_Baseline": data.get("blood_baseline"),
-          "Blood_Protein_Delta_Windows": data.get("blood_delta"),
-      },
-  )
 
-  with open(out_name, "rb") as f:
-    st.sidebar.download_button(
-        label="📥 Download Figure 5 Report (.xlsx)",
-        data=f,
-        file_name=out_name,
-        mime=(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        ),
-        key=f"dl_fig5_{uuid.uuid4()}",
-    )
-
-elif (
-    selected_figure == "Figure 6: EV vs Protein, Cytokine vs Blood Correlations"
-):
-  data = load_fig6_results()
-  out_name = "Figure6_EV_MultiModal_Integration_Report.xlsx"
-  export_sheets_to_excel(
-      out_name,
-      {
-          "Cyto_Blood_RM_Corr": data.get("cyto_blood_rm"),
-          "Protein_EVSize_RM_Corr": data.get("evsize_rm"),
-          "Protein_EVConc_RM_Corr": data.get("evconc_rm"),
-          "Cyto_Blood_Baseline": data.get("cyto_blood_baseline"),
-          "Cyto_Blood_Delta_Windows": data.get("cyto_blood_delta"),
-          "Protein_EVSize_Baseline": data.get("evsize_baseline"),
-          "Protein_EVSize_Delta_Windows": data.get("evsize_delta"),
-          "Protein_EVConc_Baseline": data.get("evconc_baseline"),
-          "Protein_EVConc_Delta_Windows": data.get("evconc_delta"),
-      },
-  )
-
-  with open(out_name, "rb") as f:
-    st.sidebar.download_button(
-        label="📥 Download Figure 6 Report (.xlsx)",
-        data=f,
-        file_name=out_name,
-        mime=(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        ),
-        key=f"dl_fig6_{uuid.uuid4()}",
-    )
-
-elif (
-    selected_figure
-    == "Figure 7: Pathway Enrichment Protein, Cytokine Correlations"
-):
-  def find_pathway_file(candidates):
-    for path in candidates:
-      if os.path.exists(path):
-        return path
-    return None
-
-  out_name = "Figure7_Pathway_Enrichment_Report.xlsx"
-  prot_path = find_pathway_file([
-      "data/enrichment_permutation_results_for_correlating_proteins.csv",
-      "../data/enrichment_permutation_results_for_correlating_proteins.csv",
-      "enrichment_permutation_results_for_correlating_proteins.csv",
-  ])
-  cyt_path = find_pathway_file([
-      "data/enrichment_permutation_results_for_correlating_cytokines.csv",
-      "../data/enrichment_permutation_results_for_correlating_cytokines.csv",
-      "enrichment_permutation_results_for_correlating_cytokines.csv",
-  ])
-
-  sheets_data = {}
-  if prot_path and os.path.exists(prot_path):
-    df_prot = pd.read_csv(prot_path)
-    if not df_prot.empty:
-      sheets_data["Protein_Pathways"] = df_prot
-
-  if cyt_path and os.path.exists(cyt_path):
-    df_cyt = pd.read_csv(cyt_path)
-    if not df_cyt.empty:
-      sheets_data["Cytokine_Pathways"] = df_cyt
-
-  export_sheets_to_excel(out_name, sheets_data)
-
-  with open(out_name, "rb") as f:
-    st.sidebar.download_button(
-        label="📥 Download Figure 7 Report (.xlsx)",
-        data=f,
-        file_name=out_name,
-        mime=(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        ),
-        key=f"dl_fig7_{uuid.uuid4()}",
-    )
-
-elif selected_figure == "Figure 8: Biophysical predictors of EV concentration shifts":
-  predictor_importance, r2_cv, pct_comp1, pct_comp2, total_pct, comp1_scores, Y_outcome, X_data, Y_actual, Y_pred, pls, X_scaled, Y_scaled = (
-      load_fig8_results()
-  )
-  model_metrics_summary = pd.DataFrame({
-      "Metric_Parameter": [
-          "Cross-Validated R2 (cv=5)",
-          "Component 1 Variance (%)",
-          "Component 2 Variance (%)",
-          "Total Variance Explained (%)",
-      ],
-      "Value": [r2_cv, pct_comp1, pct_comp2, total_pct],
-  })
-
-  out_name = "Figure8_EV_Concentration_PLS_Report.xlsx"
-  export_sheets_to_excel(
-      out_name,
-      {
-          "PLS_VIP_Scores": predictor_importance,
-          "Model_Performance_Summary": model_metrics_summary,
-      },
-  )
-
-  with open(out_name, "rb") as f:
-    st.sidebar.download_button(
-        label="📥 Download Figure 8 Report (.xlsx)",
-        data=f,
-        file_name=out_name,
-        mime=(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        ),
-        key=f"dl_fig8_{uuid.uuid4()}",
-    )
-
-elif selected_figure == "Figure 9: Biophysical predictors of EV size shifts":
-  predictor_importance, r2_cv, pct_comp1, pct_comp2, total_pct, comp1_scores, Y_outcome, X_data, Y_actual, Y_pred, pls, X_scaled, Y_scaled = (
-      load_fig9_results()
-  )
-  model_metrics_summary = pd.DataFrame({
-      "Metric_Parameter": [
-          "Cross-Validated R2 (cv=5)",
-          "Component 1 Variance (%)",
-          "Component 2 Variance (%)",
-          "Total Variance Explained (%)",
-      ],
-      "Value": [r2_cv, pct_comp1, pct_comp2, total_pct],
-  })
-
-  out_name = "Figure9_EV_Size_PLS_Report.xlsx"
-  export_sheets_to_excel(
-      out_name,
-      {
-          "PLS_VIP_Scores": predictor_importance,
-          "Model_Performance_Summary": model_metrics_summary,
-      },
-  )
-
-  with open(out_name, "rb") as f:
-    st.sidebar.download_button(
-        label="📥 Download Figure 9 Report (.xlsx)",
-        data=f,
-        file_name=out_name,
-        mime=(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        ),
-        key=f"dl_fig9_{uuid.uuid4()}",
-    )
 
 # --- COMPLETE REPOSITORY DOWNLOAD (Placed right below the active page report button) ---
 st.sidebar.markdown("---")
@@ -446,7 +286,7 @@ if os.path.exists(data_folder):
   st.sidebar.download_button(
       label="📥 Download All Raw Datasets & GMTs (.zip)",
       data=zip_buffer,
-      file_name="GLYMREG_Study_Complete_Data.zip",
+      file_name="CWIPET_Rest_Study_Complete_Data.zip",
       mime="application/zip",
       key=f"dl_all_repo_data_{uuid.uuid4()}",
   )
