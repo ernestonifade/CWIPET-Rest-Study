@@ -22,7 +22,8 @@ def load_fig5_results():
         return pd.DataFrame()
 
     data = {
-        'Bodymetric_Met': safe_read('Bodymetric_Met Omni_Multi_Omic_Interaction_Master_Matrix.csv')
+        'Bodymetric_Met': safe_read('Bodymetric_Met Omni_Multi_Omic_Interaction_Master_Matrix.csv'),
+        'Work_Space': safe_read('final_workspace_Bodymetric_Met Omni_Multi_Omic_Interaction_Master_Matrix.csv')
     }
     return data
 
