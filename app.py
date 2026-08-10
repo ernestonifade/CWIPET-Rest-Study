@@ -264,10 +264,7 @@ elif selected_figure == "Figure 5: Metabolite response to CWI given bodymetrics"
   export_sheets_to_excel(
       out_name,
       {
-          "Cyto_Metabolite_RM_Corr": data.get("cyto_rm"),
-          "Cyto_Metabolite_Baseline": data.get("cyto_baseline"),
-          "Cyto_Metabolite_Delta_Windows": data.get("cyto_delta"),
-          
+          "Metabolite response to CWI given bodymetrics": data.get("Bodymetric_Met"),
       },
   )
 
