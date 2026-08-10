@@ -208,7 +208,7 @@ def plot_interaction_heatmap_19_proteins(
     return fig
 
 # --- MAIN RENDER FUNCTION FOR STREAMLIT ---
-def render_figure3():
+def render_figure1():
     ancova_df, posthoc_df, long_df, fig1_long_df = load_results()
 
     # Streamlit Selectbox replacing ipywidgets dropdown
@@ -224,7 +224,7 @@ def render_figure3():
 
     st.markdown("---")
 
-    if selected_view == '🔥 Heatmap: Time × Group Interactions (19 Candidates)':
+    if selected_view == '🔥 Heatmap: Time × Group Interactions':
         st.markdown("""
         <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 14px; margin-bottom: 12px; border-radius: 4px; font-size: 11px; color: #856404;">
             <b>Figure 3A (Candidate Heatmap):</b> Relative fold change dynamics for 19 candidate proteins meeting nominal significance (<i>p</i><sub>raw</sub> &lt; 0.05) for Time × Group interaction across recovery.
@@ -232,7 +232,7 @@ def render_figure3():
         """, unsafe_allow_html=True)
 
         fig_hm = plot_interaction_heatmap_19_proteins(
-            long_df=fig3_long_df,
+            long_df=fig1_long_df,
             full_anova_results=ancova_df,
             id_col='Subject_ID', sex_col='sex', time_col='time', prot_col='Protein', value_col='Value',
             time_order=('baseline', '10min', '2hrs'),
@@ -439,9 +439,6 @@ def render_figure3():
         <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 10px 14px; margin-bottom: 12px; border-radius: 4px; font-size: 12px; line-height: 1.5; color: #856404;">
             <b>📄 Reviewer Note on Output Alignment:</b> Displaying all nominal significant results (<i>p</i><sub>raw</sub> &lt; 0.05) organized by Model Effect without row truncation.
             To inspect the primary <b>Jamovi statistical report</b>: 
-            <a href="https://github.com/ernestonifade/GLYMREG-Extracellular-Vesicle-Study/raw/main/data/Jamovi_Statistical_Report_Figure3.pdf" target="_blank" style="color: #533f03; font-weight: bold; text-decoration: underline;">
-                Download Jamovi PDF (GitHub) ↗
-            </a>
         </div>
         """, unsafe_allow_html=True)
         
