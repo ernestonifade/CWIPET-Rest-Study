@@ -273,12 +273,24 @@ def render_figure6():
         "2️⃣ Table: CWI x Bodymetrics Interaction on Cytokines",
         "2️⃣ Table: CWI x Bodytemp Interaction on Cytokines",
     ])
-
+    
     with tab1:
         st.subheader("Figure 5: Top Multi-Omic Interactions Grid")
-        render_figure5_top_interactions(data['Bodymetric_Met'], data['Work_Space'])
-        if fig_to_display is not None:
-            st.pyplot(fig_to_display)
+        fig_comparison = render_side_by_side_interaction_plot(
+            lmm_df_1=data['Bodymetric_Cyt'],
+            workspace_1=data['Work_Space_Bodymetric'],
+            target_metric_1="BMI_kgÂ·m2",
+            target_molecule_1="APRIL_per_TNFSF13",
+            lmm_df_2=data['Bodytemp_Cyt'],
+            workspace_2=data['Work_SpaceBodytemp'],
+            target_metric_2="Muscle_Temp2_Â°C_",
+            target_molecule_2="IL-20",
+        )
+        
+        st.pyplot(fig_comparison)
 
     with tab2:
-        render_searchable_table(data['Bodymetric_Met'], "Multi-Omic Interactions Table")
+        render_searchable_table(data['Bodymetric_Cyt'], "Multi-Omic Interactions Table")
+
+    with tab3:
+        render_searchable_table(data['Bodytemp_Cyt'], "Multi-Omic Interactions Table")
