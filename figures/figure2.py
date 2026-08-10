@@ -166,7 +166,7 @@ def render_partial_corr_view(baseline_df, delta_df, title_prefix):
     st.dataframe(filtered_active[cols].sort_values(by='p_val'), use_container_width=True, hide_index=True)
 
 def render_figure2():
-    st.title("🧬 Figure 5: Multi-Modal Integration Dashboard")
+    st.title("🧬 Figure 2: Multi-Modal Integration Dashboard")
     st.markdown("Explore integrated cross-sectional partial correlations and longitudinal repeated-measures dynamics across proteomic, cytokine, and hematological clinical layers.")
 
     data = load_fig2_results()
