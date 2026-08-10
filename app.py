@@ -10,8 +10,6 @@ from figures.figure4 import load_fig4_results, render_figure4
 from figures.figure5 import load_fig5_results, render_figure5
 from figures.figure6 import load_fig6_results, render_figure6
 from figures.figure7 import load_fig7_results, render_figure7
-from figures.figure8 import load_fig8_results, render_figure8
-from figures.figure9 import load_fig9_results, render_figure9
 from utils import render_searchable_table
 
 # --- 1. STREAMLIT PAGE CONFIGURATION (WIDE & OPEN) ---
