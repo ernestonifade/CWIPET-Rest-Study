@@ -23,6 +23,7 @@ def load_fig5_results():
 
     data = {
         'Bodymetric_Met': safe_read('Bodymetric_Met Omni_Multi_Omic_Interaction_Master_Matrix.csv'),
+        'Bodytemp_Met': safe_read('Bodytemp_Met Omni_Multi_Omic_Interaction_Master_Matrix.csv'),
         'Work_Space': safe_read('final_workspace_Bodymetric_Met Omni_Multi_Omic_Interaction_Master_Matrix.csv')
     }
     return data
@@ -234,9 +235,10 @@ def render_figure5():
 
     data = load_fig5_results()
 
-    tab1, tab2 = st.tabs([
+    tab1, tab2, tab3 = st.tabs([
         "1️⃣ CWI x Bodymetrics Interaction on Metabolites",
         "2️⃣ Table: CWI x Bodymetrics Interaction on Metabolites",
+        "2️⃣ Table: CWI x Bodytemp Interaction on Metabolites",
     ])
 
     with tab1:
@@ -247,3 +249,6 @@ def render_figure5():
 
     with tab2:
         render_searchable_table(data['Bodymetric_Met'], "Multi-Omic Interactions Table")
+
+    with tab3:
+        render_searchable_table(data['Bodytemp_Met'], "Multi-Omic Interactions Table")
