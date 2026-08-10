@@ -156,6 +156,33 @@ def render_figure5_top_interactions(lmm_df, final_workspace):
   plt.subplots_adjust(top=0.88, hspace=0.3, wspace=0.25)
   return fig
 
+def render_searchable_table(df_input, title_prefix):
+    st.subheader(f"{title_prefix} - Multi-Omic Interactions Table")
+    if df_input.empty:
+        st.info("No records loaded.")
+        return
+
+    filtered_df = df_input[df_input['Interaction_P_Value'] < 0.05].copy()
+    
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        search_query = st.text_input(f"🔍 Search {title_prefix} Features:", "", key=f"search_{title_prefix}")
+    with col2:
+        st.metric("Significant Pairs (p < 0.05)", len(filtered_df))
+
+    if search_query:
+        mask = filtered_df['Variable_A'].str.contains(search_query, case=False, na=False) | \
+               filtered_df['Variable_B'].str.contains(search_query, case=False, na=False)
+        filtered_df = filtered_df[mask]
+
+    display_cols = [c for c in ['Variable_A', 'Variable_B', 'n', 'df', 'r_rm', 'CI_95%', 'p_val', 'p_adj', 'is_significant'] if c in filtered_df.columns]
+    
+    st.dataframe(
+        filtered_df[display_cols].sort_values(by='p_val'),
+        use_container_width=True,
+        hide_index=True
+    )
+
 def render_figure2():
     st.title("🧬 Figure 5: Ordinary Least Regressions-Modal")
     st.markdown("Explore How Baseline Body Metrics Modulate Cytokine and Metabolite Responses Under Different Degrees of Immersion ")
