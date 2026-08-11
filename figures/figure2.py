@@ -36,21 +36,22 @@ def load_fig2_results():
         'cyto_rm': safe_read('fig2_cytokine_metabolite_delta_rm_corr.csv'),
         'cyto_baseline': safe_read('fig2_cytokine_metabolite_baseline.csv'),
         'cyto_delta': safe_read('fig2_cytokine_metabolite_delta_windows_partial_corr.csv'),
-        
     }
     return data
 
-def render_clustermap(df_source, title_text, xlabel, ylabel):
+def render_clustermap(df_source, title_text, xlabel="Variable B", ylabel="Variable A"):
     if df_source.empty:
         st.warning("⚠️ No data available for this integration view.")
         return
 
-    filtered = df_source[(df_source['p_val'] < 0.05) & (df_source['r_rm'].abs() > 0.5)].copy()
+    filtered = df_source[(df_source['p_val'] < 0.05) & (df_source['r_rm'].abs() > 0.5)].copy() if 'r_rm' in df_source.columns else df_source[df_source['p_val'] < 0.05].copy()
     if filtered.empty:
-        st.info("ℹ️ No feature pairs met the strict filtering criteria (FDR < 0.05 & |r| > 0.5).")
+        st.info("ℹ️ No feature pairs met the strict filtering criteria.")
         return
 
-    df_heatmap = filtered.pivot_table(index='Variable_A', columns='Variable_B', values='r_rm').fillna(0.0)
+    val_col = 'r_rm' if 'r_rm' in filtered.columns else ('r' if 'r' in filtered.columns else filtered.columns[-1])
+
+    df_heatmap = filtered.pivot_table(index='Variable_A', columns='Variable_B', values=val_col).fillna(0.0)
     p_adj_pivot = filtered.pivot_table(index='Variable_A', columns='Variable_B', values='p_val').fillna(1.0)
 
     if df_heatmap.shape[0] < 2 or df_heatmap.shape[1] < 2:
@@ -64,7 +65,7 @@ def render_clustermap(df_source, title_text, xlabel, ylabel):
         vmin=-1, vmax=1,
         linewidths=0.75,
         edgecolor="white",
-        cbar_kws={"label": "Repeated Measures Correlation ($r_{rm}$)", "orientation": "horizontal"},
+        cbar_kws={"label": "Correlation ($r$)", "orientation": "horizontal"},
         cbar=True,
         figsize=(6, 5),
         dendrogram_ratio=0.08,
@@ -172,22 +173,20 @@ def render_figure2():
     data = load_fig2_results()
 
     tab1, tab2, tab3, tab4 = st.tabs([
-        "1️⃣ Baseline Metabo vs Cyto (P Heatmap)",
+        "1️⃣ Baseline Metabo vs Cyto (Heatmap)",
         "2️⃣ Temporal Metabo vs Cyto (RM Heatmap)",
         "3️⃣ Metabo vs Cyto (RM Table)",
         "4️⃣ Metabo vs Cyto (Partial Corr Table)",
-        
     ])
 
     with tab1:
-        render_clustermap(data['cyto_baseline'], 'Baseline: Metabolites vs. Cytokines')
+        render_clustermap(data['cyto_baseline'], 'Baseline: Metabolites vs. Cytokines', xlabel="Metabolites", ylabel="Cytokines")
 
     with tab2:
-        render_clustermap(data['cyto_rm'], 'Repeated Measures: Metabolites vs. Cytokines')
+        render_clustermap(data['cyto_rm'], 'Repeated Measures: Metabolites vs. Cytokines', xlabel="Metabolites", ylabel="Cytokines")
 
     with tab3:
         render_searchable_table(data['cyto_rm'], "Metabolites vs. Cytokines")
 
     with tab4:
         render_partial_corr_view(data['cyto_baseline'], data['cyto_delta'], "Metabolites vs. Cytokines")
-
