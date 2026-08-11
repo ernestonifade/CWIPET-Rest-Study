@@ -167,9 +167,9 @@ def render_ols_searchable_table(df_input, title_prefix):
 
   # Filter based on FDR-adjusted significance or raw interaction p-value
   sig_col = (
-      'Significant_After_FDR'
-      if 'Significant_After_FDR' in df_input.columns
-      else 'Interaction_P_Value'
+      'Interaction_P_Value'
+      if 'Interaction_P_Value' in df_input.columns
+      else 'Significant_After_FDR'
   )
   if sig_col == 'Significant_After_FDR':
     filtered_df = df_input[df_input[sig_col] == True].copy()
