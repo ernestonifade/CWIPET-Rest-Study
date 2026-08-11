@@ -57,15 +57,23 @@ def render_pathway_enrichment_bubble_from_df(
             return None
 
         # Load dataframe based on file extension
-        if filepath.endswith(".xlsx") or filepath.endswith(".xls"):
-            df_master = pd.read_excel(filepath)
-        else:
-            df_master = pd.read_csv(filepath)
+    if filepath.endswith(".xlsx") or filepath.endswith(".xls"):
+        df_master = pd.read_excel(filepath)
     else:
-        df_master = results_input.copy()
+        df_master = pd.read_csv(filepath)
+else:
+    df_master = results_input.copy()
 
-    df = df_master.copy()
-    title_suffix = database_name
+df = df_master.copy()
+title_suffix = database_name
+
+# --- STRICT FILTERING & TOP 15 LIMITER ---
+if "Entities FDR" in df.columns:
+    df = df[df["Entities FDR"] < 0.05].copy()
+
+# Sort by FDR ascending (most significant first) and take the top 15
+if not df.empty:
+    df = df.sort_values(by="Entities FDR", ascending=True).head(15)
 
     # 3. Apply clean index-based selection if specified
     if pathway_indices is not None and not df.empty:
