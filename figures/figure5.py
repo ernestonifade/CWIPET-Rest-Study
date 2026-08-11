@@ -91,9 +91,10 @@ def render_figure5_top_interactions(lmm_df, final_workspace):
 
     # Generate separate group slope trends with 95% confidence intervals
     for grp, color, lbl in [
-        ("Group_8C", custom_palette["Group_8C"], "8°C"),
-        ("Group_15C", custom_palette["Group_15C"], "15°C"),
         ("Group_22C", custom_palette["Group_22C"], "22°C"),
+        ("Group_15C", custom_palette["Group_15C"], "15°C"),
+        ("Group_8C", custom_palette["Group_8C"], "8°C"),
+        
     ]:
       subset = final_workspace[final_workspace["CWI_Group"] == grp]
       if not subset.empty:
@@ -146,7 +147,7 @@ def render_figure5_top_interactions(lmm_df, final_workspace):
   if handles:
     fig.legend(
         handles,
-        ["8°C (Extreme Cold)", "15°C (Cool Water)", "22°C (Control)"],
+        ["22°C (Control)", "15°C (Cool Water)", "8°C (Extreme Cold)"],
         loc="upper center",
         bbox_to_anchor=(0.5, 0.98),
         ncol=3,
@@ -173,7 +174,7 @@ def render_ols_searchable_table(df_input, title_prefix):
   if sig_col == 'Significant_After_FDR':
     filtered_df = df_input[df_input[sig_col] == True].copy()
   else:
-    filtered_df = df_input[df_input[sig_col] < 0.05].copy()
+    filtered_df = df_input[df_input[sig_col] < 100].copy()
 
   col1, col2 = st.columns([3, 1])
   with col1:
