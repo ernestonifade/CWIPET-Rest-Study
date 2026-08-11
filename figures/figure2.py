@@ -33,9 +33,9 @@ def load_fig2_results():
         return pd.DataFrame()
 
     data = {
-        'cyto_rm': safe_read('fig5_cytokine_metabolite_delta_rm_corr.csv'),
-        'cyto_baseline': safe_read('fig5_cytokine_metabolite_baseline.csv'),
-        'cyto_delta': safe_read('fig5_cytokine_metabolite_delta_windows_partial_corr.csv'),
+        'cyto_rm': safe_read('fig2_cytokine_metabolite_delta_rm_corr.csv'),
+        'cyto_baseline': safe_read('fig2_cytokine_metabolite_baseline.csv'),
+        'cyto_delta': safe_read('fig2_cytokine_metabolite_delta_windows_partial_corr.csv'),
         
     }
     return data
@@ -151,7 +151,7 @@ def render_partial_corr_view(baseline_df, delta_df, title_prefix):
 
     filtered_active = active_df[active_df['p_val'] < 0.05].copy()
 
-    c1, c2 = st.columns([3, 1])
+    c1, c2 = st.columns([2, 1])
     with c1:
         query = st.text_input(f"🔍 Search {selected_time} features:", "", key=f"search_part_{title_prefix}")
     with c2:
