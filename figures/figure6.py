@@ -290,7 +290,7 @@ def render_figure6():
         st.pyplot(fig_comparison)
 
     with tab2:
-        render_searchable_table(data['Bodymetric_Cyt'], "Multi-Omic Interactions Table")
+        render_searchable_table(data['Bodymetric_Cyt'], "Bodymetric Cytokines Multi-Omic Interactions Table")
 
     with tab3:
-        render_searchable_table(data['Bodytemp_Cyt'], "Multi-Omic Interactions Table")
+        render_searchable_table(data['Bodytemp_Cyt'], "Bodytemp Cytokines Multi-Omic Interactions Table")
