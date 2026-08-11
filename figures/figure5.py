@@ -122,8 +122,8 @@ def render_figure5_top_interactions(lmm_df, final_workspace):
 
     # Format subplot header with statistical metrics
     p_val_str = (
-        f"{row['P_Value']:.5f}"
-        if "P_Value" in row and not pd.isna(row["P_Value"])
+        f"{row['FDR_Adjusted_P']:.5f}"
+        if "FDR_Adjusted_P" in row and not pd.isna(row["FDR_Adjusted_P"])
         else "N/A"
     )
     r2_str = (
