@@ -209,7 +209,7 @@ def plot_interaction_heatmap_19_proteins(
 
 # --- MAIN RENDER FUNCTION FOR STREAMLIT ---
 def render_figure4():
-    ancova_df, posthoc_df, long_df, fig1_long_df = load_results()
+    ancova_df, posthoc_df, long_df, fig4_long_df = load_results()
 
     # Streamlit Selectbox replacing ipywidgets dropdown
     selected_view = st.selectbox(
@@ -245,7 +245,7 @@ def render_figure4():
         st.pyplot(fig_hm)
 
     elif selected_view == 'Est Marginal Mean Plot: Group Effect':
-        fig, axes = plt.subplots(1, 2, figsize=(6.5, 3.5), layout='constrained')
+        fig, axes = plt.subplots(1, 3, figsize=(3.5, 3.5), layout='constrained')
         df_emm = pd.DataFrame({
              'Metabolite': ['Muscle Temp1', 'Muscle Temp1', 'Muscle Temp1', 'Muscle Temp2', 'Muscle Temp2', 'Muscle Temp2', 'Muscle Temp3', 'Muscle Temp3', 'Muscle Temp3'],
              'Group': ['22°C', '15°C', '8°C', '22°C', '15°C', '8°C', '22°C', '15°C', '8°C'],
