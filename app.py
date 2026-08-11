@@ -140,7 +140,7 @@ elif selected_figure == "Figure 6: Cytokine response to CWI given bodymetrics an
 st.sidebar.header("📥 Export Statistical Reports")
 
 if selected_figure == "Figure 1: Metabolite and Cytokine responses to different degrees of CWI":
-    ancova_df, posthoc_df, long_df = load_fig1_results()
+    ancova_df, posthoc_df, long_df, fig1_long_df = load_fig1_results()
     out_name = "Figure1_EV_Full_Stats_Report.xlsx"
     export_sheets_to_excel(
         out_name,
