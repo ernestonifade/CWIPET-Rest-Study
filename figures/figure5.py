@@ -238,17 +238,17 @@ def render_figure5():
     tab1, tab2, tab3 = st.tabs([
         "1️⃣ CWI x Bodymetrics Interaction on Metabolites",
         "2️⃣ Table: CWI x Bodymetrics Interaction on Metabolites",
-        "2️⃣ Table: CWI x Bodytemp Interaction on Metabolites",
+        "3️⃣ Table: CWI x Bodytemp Interaction on Metabolites",
     ])
 
     with tab1:
         st.subheader("Figure 5: Top Multi-Omic Interactions Grid")
-        render_figure5_top_interactions(data['Bodymetric_Met'], data['Work_Space'])
+        fig_to_display = render_figure5_top_interactions(data['Bodymetric_Met'], data['Work_Space'])
         if fig_to_display is not None:
             st.pyplot(fig_to_display)
 
     with tab2:
-        render_searchable_table(data['Bodymetric_Met'], "Multi-Omic Interactions Table")
+        render_ols_searchable_table(data['Bodymetric_Met'], "Bodymetric Metabolites")
 
     with tab3:
-        render_searchable_table(data['Bodytemp_Met'], "Multi-Omic Interactions Table")
+        render_ols_searchable_table(data['Bodytemp_Met'], "Bodytemp Metabolites")
