@@ -1,6 +1,13 @@
 import io
 import os
+import sys
 import uuid
+
+# Ensure current working directory is explicitly on sys.path for cloud deployment
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+
 import openpyxl
 import pandas as pd
 import streamlit as st
