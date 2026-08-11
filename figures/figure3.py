@@ -34,14 +34,14 @@ def render_pathway_enrichment_bubble_from_df(
         elif isinstance(results_input, (str, os.PathLike)):
             file_candidates = [
                 str(results_input),
-                "data/enrichment_results_for_correlating_metabolites.csv",
-                "data/enrichment_results_for_correlating_cytokines.csv",
+                "results/enrichment_results_for_correlating_metabolites.csv",
+                "results/enrichment_results_for_correlating_cytokines.csv",
             ]
         else:
             file_candidates = [
-                "data/enrichment_results_for_correlating_metabolites.xlsx",
-                "data/enrichment_results_for_correlating_metabolites.csv",
-                "../data/enrichment_results_for_correlating_cytokines.csv",
+                "results/enrichment_results_for_correlating_metabolites.xlsx",
+                "results/enrichment_results_for_correlating_metabolites.csv",
+                "../results/enrichment_results_for_correlating_cytokines.csv",
             ]
 
         filepath = None
@@ -207,14 +207,14 @@ def find_pathway_file(candidates):
 # --- MAIN RENDER FUNCTION FOR STREAMLIT ---
 def render_figure3():
     prot_candidates = [
-        "data/enrichment_results_for_correlating_metabolites.csv",
-        "../data/enrichment_results_for_correlating_metabolites.csv",
+        "results/enrichment_results_for_correlating_metabolites.csv",
+        "../results/enrichment_results_for_correlating_metabolites.csv",
         "enrichment_results_for_correlating_metabolites.xlsx",
         "enrichment_results_for_correlating_metabolites.csv",
     ]
     cyt_candidates = [
-        "data/enrichment_results_for_correlating_cytokines.csv",
-        "../data/enrichment_results_for_correlating_cytokines.csv",
+        "results/enrichment_results_for_correlating_cytokines.csv",
+        "../results/enrichment_results_for_correlating_cytokines.csv",
         "../enrichment_results_for_correlating_cytokines.csv",
         "enrichment_results_for_correlating_cytokines.xlsx",
         "enrichment_results_for_correlating_cytokines.csv",
