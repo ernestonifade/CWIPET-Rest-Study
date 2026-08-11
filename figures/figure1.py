@@ -350,7 +350,9 @@ def render_figure1():
         st.pyplot(fig_hm)
 
     elif selected_view == '🧬 Est Marginal Mean Plot: Group Effect':
-        fig, axes = plt.subplots(2, 2, figsize=(6.5, 3.5), layout='constrained')
+        fig, axes = plt.subplots(2, 2, figsize=(7.5, 6.5), layout='constrained')
+        axes = axes.flatten()  # Flatten 2x2 matrix into a 1D iterable of 4 axes
+
         df_emm = pd.DataFrame({
             'Metabolite': [
                 'IL-26', 'IL-26', 'IL-26',
@@ -385,37 +387,41 @@ def render_figure1():
             'SE': [2.34, 2.41, 2.34, 0.72, 0.72, 0.71, 0.13, 0.13, 0.13, 0.60, 0.60, 0.60],
         })
 
-        sub_size = df_emm[df_emm['Metabolite'] == 'IL-26']
+        metabolites = ['IL-26', 'Aminomalonic acid', 'IL-11', 'Palmitelaidic acid']
         group_order = ['22°C', '15°C', '8°C']
         markers = ['o', 's', '^']
         colors = ['#f57a00', '#00f5d4', '#002df5']
 
-        for idx, row in sub_size.iterrows():
-            group_val = row['Group']
-            if group_val in group_order:
-                x_pos = group_order.index(group_val)
-            else:
-                continue
+        for i, met in enumerate(metabolites):
+            ax = axes[i]
+            sub_size = df_emm[df_emm['Metabolite'] == met]
 
-            axes[0].errorbar(
-                x_pos,
-                row['EMM'],
-                yerr=[
-                    [row['EMM'] - row['CI_lower']],
-                    [row['CI_upper'] - row['EMM']],
-                ],
-                fmt=markers[x_pos],
-                color=colors[x_pos],
-                capsize=5,
-                markersize=7,
-            )
+            for idx, row in sub_size.iterrows():
+                group_val = row['Group']
+                if group_val in group_order:
+                    x_pos = group_order.index(group_val)
+                else:
+                    continue
 
-        axes[0].set_xticks([0, 1, 2])
-        axes[0].set_xticklabels(group_order)
-        axes[0].set_xlim(-0.5, 2.5)
-        axes[0].set_ylabel('Adjusted EMM (nm)')
-        axes[0].set_title('IL-26')
-        axes[0].grid(axis='y', linestyle='--', alpha=0.5)
+                ax.errorbar(
+                    x_pos,
+                    row['EMM'],
+                    yerr=[
+                        [row['EMM'] - row['CI_lower']],
+                        [row['CI_upper'] - row['EMM']],
+                    ],
+                    fmt=markers[x_pos],
+                    color=colors[x_pos],
+                    capsize=5,
+                    markersize=7,
+                )
+
+            ax.set_xticks([0, 1, 2])
+            ax.set_xticklabels(group_order)
+            ax.set_xlim(-0.5, 2.5)
+            ax.set_ylabel('Adjusted EMM (nm)')
+            ax.set_title(met)
+            ax.grid(axis='y', linestyle='--', alpha=0.5)
 
         plt.suptitle('Estimated Marginal Means (Baseline Adjusted)', fontweight='bold')
         st.pyplot(fig)
