@@ -34,13 +34,13 @@ def render_pathway_enrichment_bubble_from_df(
     elif isinstance(results_input, (str, os.PathLike)):
       file_candidates = [
           str(results_input),
-          "data/enrichment_results_for_correlating_metabolites.csv",
-          "data/enrichment_results_for_correlating_cytokines.csv",
+          "results/enrichment_results_for_correlating_metabolites.csv",
+          "results/enrichment_results_for_correlating_cytokines.csv",
       ]
     else:
       file_candidates = [
-          "data/enrichment_results_for_correlating_metabolites.xlsx",
-          "../data/enrichment_results_for_correlating_cytokines.xlsx",
+          "results/enrichment_results_for_correlating_metabolites.xlsx",
+          "../results/enrichment_results_for_correlating_cytokines.xlsx",
       ]
 
     filepath = None
@@ -205,12 +205,12 @@ def find_pathway_file(candidates):
 def render_figure3():
   # Define candidate filepaths for proteins and cytokines
   prot_candidates = [
-      "data/enrichment_results_for_correlating_metabolites.csv",
-      "../data/enrichment_results_for_correlating_metabolites.csv",
+      "results/enrichment_results_for_correlating_metabolites.csv",
+      "../results/enrichment_results_for_correlating_metabolites.csv",
       "enrichment_results_for_correlating_metabolites.xlsx",
   ]
   cyt_candidates = [
-      "data/enrichment_results_for_correlating_cytokines.csv",
+      "results/enrichment_results_for_correlating_cytokines.csv",
       "../enrichment_results_for_correlating_cytokines.csv",
       "enrichment_results_for_correlating_cytokines.xlsx",
   ]
