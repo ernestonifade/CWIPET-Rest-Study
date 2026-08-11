@@ -1,3 +1,4 @@
+import io
 import os
 import uuid
 import openpyxl
@@ -85,256 +86,230 @@ selected_figure = st.sidebar.radio(
         "Figure 4: Body temperatures responses to different degrees of CWI",
         "Figure 5: Metabolite response to CWI given bodymetrics",
         "Figure 6: Cytokine response to CWI given bodymetrics and bodytemperatures",
-        
-        
     ],
     index=0,
 )
 
 st.sidebar.markdown("---")
 
+
 # Helper function to write DataFrames safely using openpyxl
 def export_sheets_to_excel(filename, sheets_dict):
-  wb = openpyxl.Workbook()
-  default_sheet = wb.active
-  wb.remove(default_sheet)
+    wb = openpyxl.Workbook()
+    default_sheet = wb.active
+    wb.remove(default_sheet)
 
-  for sheet_name, df in sheets_dict.items():
-    if df is not None and not df.empty:
-      ws = wb.create_sheet(title=sheet_name)
-      ws.append(list(df.columns))
-      for row in df.itertuples(index=False, name=None):
-        ws.append(list(row))
+    for sheet_name, df in sheets_dict.items():
+        if df is not None and not df.empty:
+            ws = wb.create_sheet(title=sheet_name)
+            ws.append(list(df.columns))
+            for row in df.itertuples(index=False, name=None):
+                ws.append(list(row))
 
-  if len(wb.worksheets) == 0:
-    ws = wb.create_sheet(title="Info")
-    ws.append(["Note"])
-    ws.append(["No data available"])
+    if len(wb.worksheets) == 0:
+        ws = wb.create_sheet(title="Info")
+        ws.append(["Note"])
+        ws.append(["No data available"])
 
-  wb.save(filename)
+    wb.save(filename)
 
 
 # --- 3. PAGE ROUTING & RENDER CALLS ---
 if selected_figure == "Figure 1: Metabolite and Cytokine responses to different degrees of CWI":
-  render_figure1()
-elif (
-    selected_figure
-    == "Figure 2: Metabolite and Cytokine correlations in response to CWI"
-):
-  render_figure2()
+    render_figure1()
+elif selected_figure == "Figure 2: Metabolite and Cytokine correlations in response to CWI":
+    render_figure2()
 elif selected_figure == "Figure 3: Pathway enrichment correlating cytokines and metabolites":
-  render_figure3()
+    render_figure3()
 elif selected_figure == "Figure 4: Body temperatures responses to different degrees of CWI":
-  render_figure4()
+    render_figure4()
 elif selected_figure == "Figure 5: Metabolite response to CWI given bodymetrics":
-  render_figure5()
+    render_figure5()
 elif selected_figure == "Figure 6: Cytokine response to CWI given bodymetrics and bodytemperatures":
-  render_figure6()
-
+    render_figure6()
 
 
 # --- 4. ONE-CLICK INSTANT EXPORT HANDLER ---
 st.sidebar.header("📥 Export Statistical Reports")
 
-if (
-    selected_figure
-    == "Figure 1: Metabolite and Cytokine responses to different degrees of CWI"
-):
-  ancova_df, posthoc_df, long_df = load_fig1_results()
-  out_name = "Figure1_EV_Full_Stats_Report.xlsx"
-  export_sheets_to_excel(
-      out_name,
-      {
-          "RM_ANCOVA_Stats": ancova_df,
-          "PostHoc_Contrasts": posthoc_df,
-          "Raw_Data": long_df,
-      },
-  )
-
-  with open(out_name, "rb") as f:
-    st.sidebar.download_button(
-        label="📥 Download Figure 1 Report (.xlsx)",
-        data=f,
-        file_name=out_name,
-        mime=(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        ),
-        key=f"dl_fig1_{uuid.uuid4()}",
+if selected_figure == "Figure 1: Metabolite and Cytokine responses to different degrees of CWI":
+    ancova_df, posthoc_df, long_df = load_fig1_results()
+    out_name = "Figure1_EV_Full_Stats_Report.xlsx"
+    export_sheets_to_excel(
+        out_name,
+        {
+            "RM_ANCOVA_Stats": ancova_df,
+            "PostHoc_Contrasts": posthoc_df,
+            "Raw_Data": long_df,
+        },
     )
+
+    with open(out_name, "rb") as f:
+        st.sidebar.download_button(
+            label="📥 Download Figure 1 Report (.xlsx)",
+            data=f,
+            file_name=out_name,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key=f"dl_fig1_{uuid.uuid4()}",
+        )
 
 elif selected_figure == "Figure 2: Metabolite and Cytokine correlations in response to CWI":
-  data = load_fig2_results()
-  out_name = "Figure2_Metabolite_Cytokine_Corr_Report.xlsx"
-  export_sheets_to_excel(
-      out_name,
-      {
-          "Cyto_Metabolite_RM_Corr": data.get("cyto_rm"),
-          "Cyto_Metabolite_Baseline": data.get("cyto_baseline"),
-          "Cyto_Metabolite_Delta_Windows": data.get("cyto_delta"),
-          
-      },
-  )
-
-  with open(out_name, "rb") as f:
-    st.sidebar.download_button(
-        label="📥 Download Figure 2 Report (.xlsx)",
-        data=f,
-        file_name=out_name,
-        mime=(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        ),
-        key=f"dl_fig2_{uuid.uuid4()}",
+    data = load_fig2_results()
+    out_name = "Figure2_Metabolite_Cytokine_Corr_Report.xlsx"
+    export_sheets_to_excel(
+        out_name,
+        {
+            "Cyto_Metabolite_RM_Corr": data.get("cyto_rm"),
+            "Cyto_Metabolite_Baseline": data.get("cyto_baseline"),
+            "Cyto_Metabolite_Delta_Windows": data.get("cyto_delta"),
+        },
     )
 
-elif (
-    selected_figure
-    == "Figure 3: Pathway enrichment correlating cytokines and metabolites"
-):
-  def find_pathway_file(candidates):
-    for path in candidates:
-      if os.path.exists(path):
-        return path
-    return None
+    with open(out_name, "rb") as f:
+        st.sidebar.download_button(
+            label="📥 Download Figure 2 Report (.xlsx)",
+            data=f,
+            file_name=out_name,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key=f"dl_fig2_{uuid.uuid4()}",
+        )
 
-  out_name = "Pathway enrichment correlating cytokines and metabolites.xlsx"
-  prot_path = find_pathway_file([
-      "data/enrichment_results_for_correlating_metabolites.csv",
-      "../data/enrichment_results_for_correlating_metabolites.csv",
-      "enrichment_results_for_correlating_metabolites.csv",
-  ])
-  cyt_path = find_pathway_file([
-      "data/enrichment_results_for_correlating_cytokines.csv",
-      "../data/enrichment_results_for_correlating_cytokines.csv",
-      "enrichment_results_for_correlating_cytokines.csv",
-  ])
+elif selected_figure == "Figure 3: Pathway enrichment correlating cytokines and metabolites":
 
-  sheets_data = {}
-  if prot_path and os.path.exists(prot_path):
-    df_prot = pd.read_csv(prot_path)
-    if not df_prot.empty:
-      sheets_data["Metabolite_Pathways"] = df_prot
+    def find_pathway_file(candidates):
+        for path in candidates:
+            if os.path.exists(path):
+                return path
+        return None
 
-  if cyt_path and os.path.exists(cyt_path):
-    df_cyt = pd.read_csv(cyt_path)
-    if not df_cyt.empty:
-      sheets_data["Cytokine_Pathways"] = df_cyt
+    out_name = "Pathway enrichment correlating cytokines and metabolites.xlsx"
+    prot_path = find_pathway_file([
+        "data/enrichment_results_for_correlating_metabolites.csv",
+        "../data/enrichment_results_for_correlating_metabolites.csv",
+        "enrichment_results_for_correlating_metabolites.csv",
+    ])
+    cyt_path = find_pathway_file([
+        "data/enrichment_results_for_correlating_cytokines.csv",
+        "../data/enrichment_results_for_correlating_cytokines.csv",
+        "enrichment_results_for_correlating_cytokines.csv",
+    ])
 
-  export_sheets_to_excel(out_name, sheets_data)
+    sheets_data = {}
+    if prot_path and os.path.exists(prot_path):
+        df_prot = pd.read_csv(prot_path)
+        if not df_prot.empty:
+            sheets_data["Metabolite_Pathways"] = df_prot
 
-  with open(out_name, "rb") as f:
-    st.sidebar.download_button(
-        label="📥 Download Figure 3 Report (.xlsx)",
-        data=f,
-        file_name=out_name,
-        mime=(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        ),
-        key=f"dl_fig3_{uuid.uuid4()}",
+    if cyt_path and os.path.exists(cyt_path):
+        df_cyt = pd.read_csv(cyt_path)
+        if not df_cyt.empty:
+            sheets_data["Cytokine_Pathways"] = df_cyt
+
+    export_sheets_to_excel(out_name, sheets_data)
+
+    with open(out_name, "rb") as f:
+        st.sidebar.download_button(
+            label="📥 Download Figure 3 Report (.xlsx)",
+            data=f,
+            file_name=out_name,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key=f"dl_fig3_{uuid.uuid4()}",
+        )
+
+elif selected_figure == "Figure 4: Body temperatures responses to different degrees of CWI":
+    ancova_df, posthoc_df, long_df = load_fig4_results()
+    out_name = "Figure4_Full_Stats_Report.xlsx"
+    export_sheets_to_excel(
+        out_name,
+        {
+            "RM_ANCOVA_Stats": ancova_df,
+            "PostHoc_Contrasts": posthoc_df,
+            "Raw_Data": long_df,
+        },
     )
 
-elif (
-    selected_figure
-    == "Figure 4: Body temperatures responses to different degrees of CWI"
-):
-  ancova_df, posthoc_df, long_df = load_fig4_results()
-  out_name = "Figure4_Full_Stats_Report.xlsx"
-  export_sheets_to_excel(
-      out_name,
-      {
-          "RM_ANCOVA_Stats": ancova_df,
-          "PostHoc_Contrasts": posthoc_df,
-          "Raw_Data": long_df,
-      },
-  )
-
-  with open(out_name, "rb") as f:
-    st.sidebar.download_button(
-        label="📥 Download Figure 4 Report (.xlsx)",
-        data=f,
-        file_name=out_name,
-        mime=(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        ),
-        key=f"dl_fig4_{uuid.uuid4()}",
-    )
+    with open(out_name, "rb") as f:
+        st.sidebar.download_button(
+            label="📥 Download Figure 4 Report (.xlsx)",
+            data=f,
+            file_name=out_name,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key=f"dl_fig4_{uuid.uuid4()}",
+        )
 
 elif selected_figure == "Figure 5: Metabolite response to CWI given bodymetrics":
-  data = load_fig5_results()
-  out_name = "Figure5_Metabolite response to CWI given bodymetrics_Report.xlsx"
-  export_sheets_to_excel(
-      out_name,
-      {
-          "Metabolite response to CWI given bodymetrics": data.get("Bodymetric_Met"),
-          "Metabolite response to CWI given bodytemp": data.get("Bodytemp_Met"),
-      },
-  )
-
-  with open(out_name, "rb") as f:
-    st.sidebar.download_button(
-        label="📥 Download Figure 5 Report (.xlsx)",
-        data=f,
-        file_name=out_name,
-        mime=(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        ),
-        key=f"dl_fig5_{uuid.uuid4()}",
+    data = load_fig5_results()
+    out_name = "Figure5_Metabolite response to CWI given bodymetrics_Report.xlsx"
+    export_sheets_to_excel(
+        out_name,
+        {
+            "Metabolite response to CWI given bodymetrics": data.get(
+                "Bodymetric_Met"
+            ),
+            "Metabolite response to CWI given bodytemp": data.get(
+                "Bodytemp_Met"
+            ),
+        },
     )
+
+    with open(out_name, "rb") as f:
+        st.sidebar.download_button(
+            label="📥 Download Figure 5 Report (.xlsx)",
+            data=f,
+            file_name=out_name,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key=f"dl_fig5_{uuid.uuid4()}",
+        )
 
 elif selected_figure == "Figure 6: Cytokine response to CWI given bodymetrics and bodytemperatures":
-  data = load_fig6_results()
-  out_name = "Figure6_Cytokine response to CWI given bodymetrics and body temp_Report.xlsx"
-  export_sheets_to_excel(
-      out_name,
-      {
-          "Cytokine response to CWI given bodymetrics": data.get("Bodymetric_Cyt"),
-          "Cytokine response to CWI given bodytemp": data.get("Bodytemp_Cyt"),
-          
-      },
-  )
-
-  with open(out_name, "rb") as f:
-    st.sidebar.download_button(
-        label="📥 Download Figure 6 Report (.xlsx)",
-        data=f,
-        file_name=out_name,
-        mime=(
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        ),
-        key=f"dl_fig6_{uuid.uuid4()}",
+    data = load_fig6_results()
+    out_name = "Figure6_Cytokine response to CWI given bodymetrics and body temp_Report.xlsx"
+    export_sheets_to_excel(
+        out_name,
+        {
+            "Cytokine response to CWI given bodymetrics": data.get(
+                "Bodymetric_Cyt"
+            ),
+            "Cytokine response to CWI given bodytemp": data.get("Bodytemp_Cyt"),
+        },
     )
 
+    with open(out_name, "rb") as f:
+        st.sidebar.download_button(
+            label="📥 Download Figure 6 Report (.xlsx)",
+            data=f,
+            file_name=out_name,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key=f"dl_fig6_{uuid.uuid4()}",
+        )
 
 
-
-# --- COMPLETE REPOSITORY DOWNLOAD (Placed right below the active page report button) ---
+# --- COMPLETE REPOSITORY DOWNLOAD ---
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🗂️ Complete Study Repository")
-
-import io
-import zipfile
 
 zip_buffer = io.BytesIO()
 data_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 
 if os.path.exists(data_folder):
-  with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
-    for root, dirs, files in os.walk(data_folder):
-      for file in files:
-        if file.lower().endswith(
-            (".xlsx", ".xls", ".csv", ".txt", ".gmt", ".gmx")
-        ):
-          file_path = os.path.join(root, file)
-          arcname = os.path.relpath(file_path, data_folder)
-          zip_file.write(file_path, arcname=arcname)
+    import zipfile
 
-  zip_buffer.seek(0)
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zip_file:
+        for root, dirs, files in os.walk(data_folder):
+            for file in files:
+                if file.lower().endswith(
+                    (".xlsx", ".xls", ".csv", ".txt", ".gmt", ".gmx")
+                ):
+                    file_path = os.path.join(root, file)
+                    arcname = os.path.relpath(file_path, data_folder)
+                    zip_file.write(file_path, arcname=arcname)
 
-  st.sidebar.download_button(
-      label="📥 Download All Raw Datasets & GMTs (.zip)",
-      data=zip_buffer,
-      file_name="CWIPET_Rest_Study_Complete_Data.zip",
-      mime="application/zip",
-      key=f"dl_all_repo_data_{uuid.uuid4()}",
-  )
-            
-    
+    zip_buffer.seek(0)
+
+    st.sidebar.download_button(
+        label="📥 Download All Raw Datasets & GMTs (.zip)",
+        data=zip_buffer,
+        file_name="CWIPET_Rest_Study_Complete_Data.zip",
+        mime="application/zip",
+        key=f"dl_all_repo_data_{uuid.uuid4()}",
+    )
