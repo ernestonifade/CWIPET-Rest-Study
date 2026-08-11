@@ -271,7 +271,7 @@ def render_figure6():
     tab1, tab2, tab3= st.tabs([
         "1️⃣ CWI x Bodymetrics Interaction on Metabolites",
         "2️⃣ Table: CWI x Bodymetrics Interaction on Cytokines",
-        "2️⃣ Table: CWI x Bodytemp Interaction on Cytokines",
+        "3️⃣ Table: CWI x Bodytemp Interaction on Cytokines",
     ])
     
     with tab1:
