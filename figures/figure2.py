@@ -44,17 +44,14 @@ def render_clustermap(df_source, title_text, xlabel="Variable B", ylabel="Variab
         st.warning("⚠️ No data available for this integration view.")
         return
 
-    # Dynamically detect whether this is repeated measures (r_rm) or partial/standard correlation (r)
+    # Explicit column-based conditional filtering
     if 'r_rm' in df_source.columns:
-        # Strict filtering for repeated-measures correlations
         filtered = df_source[(df_source['p_val'] < 0.05) & (df_source['r_rm'].abs() > 0.5)].copy()
         val_col = 'r_rm'
     elif 'r' in df_source.columns:
-        # Flexible filtering for baseline or partial correlations (e.g., p < 0.05, |r| > 0.3 or configurable)
         filtered = df_source[(df_source['p_val'] < 0.05) & (df_source['r'].abs() > 0.3)].copy()
         val_col = 'r'
     else:
-        # Fallback if specific correlation column names are missing
         filtered = df_source[df_source['p_val'] < 0.05].copy()
         val_col = filtered.columns[-1]
 
