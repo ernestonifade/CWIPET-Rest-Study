@@ -55,36 +55,77 @@ load_fig4_results = load_results
 
 
 def plot_interaction_heatmap_19_proteins(
-    long_df, full_anova_results,
-    id_col='Subject_ID', sex_col='sex', time_col='time', prot_col='Protein', value_col='Value',
+    long_df,
+    full_anova_results,
+    id_col=None,
+    sex_col=None,
+    time_col=None,
+    prot_col='Protein',
+    value_col='Value',
     time_order=('baseline', '10min', '2hrs'),
     time_display={'10min': '10min', '2hrs': '2hrs'},
     sex_order=('8°C', '15°C', '22°C'),
     sex_short={'8°C': '8°C', '15°C': '15°C', '22°C': '22°C'},
-    use_p_col='p_value_raw', alpha=0.05,
+    use_p_col='p_value_raw',
+    alpha=0.05,
     effect_term='TimePoint:Group',
-    cmap='coolwarm', pseudocount=1e-9,
-    figsize_w=3.8, row_height=0.22,
+    cmap='coolwarm',
+    pseudocount=1e-9,
+    figsize_w=3.8,
+    row_height=0.22,
     title=None,
-    proteins_of_interest=None, poi_color="red", poi_bold=True,
-    x_tick_rotation=0
+    proteins_of_interest=None,
+    poi_color='red',
+    poi_bold=True,
+    x_tick_rotation=0,
 ):
     mpl.rcParams['svg.fonttype'] = 'none'
-    
+
     plt.rcParams.update({
-        'font.family': 'sans-serif', 'font.sans-serif': ['Arial', 'Helvetica', 'FreeSans', 'DejaVu Sans', 'sans-serif'],
-        'font.size': 8, 'font.weight': 'bold',
-        'axes.titlesize': 8.5, 'axes.titleweight': 'bold',
-        'axes.labelsize': 8, 'axes.labelweight': 'bold',
-        'xtick.labelsize': 7, 'ytick.labelsize': 7,
-        'axes.linewidth': 1.0, 'lines.linewidth': 1.2,
-        'savefig.bbox': 'tight'
+        'font.family': 'sans-serif',
+        'font.sans-serif': ['Arial', 'Helvetica', 'FreeSans', 'DejaVu Sans', 'sans-serif'],
+        'font.size': 8,
+        'font.weight': 'bold',
+        'axes.titlesize': 8.5,
+        'axes.titleweight': 'bold',
+        'axes.labelsize': 8,
+        'axes.labelweight': 'bold',
+        'xtick.labelsize': 7,
+        'ytick.labelsize': 7,
+        'axes.linewidth': 1.0,
+        'lines.linewidth': 1.2,
+        'savefig.bbox': 'tight',
     })
+
+    # Auto-detect valid columns if defaults are missing from long_df
+    if not id_col or id_col not in long_df.columns:
+        for candidate in ['Subject_ID', 'subject_id', 'ID', 'id']:
+            if candidate in long_df.columns:
+                id_col = candidate
+                break
+    if not sex_col or sex_col not in long_df.columns:
+        for candidate in ['sex', 'Sex', 'Group', 'group', 'GROUP']:
+            if candidate in long_df.columns:
+                sex_col = candidate
+                break
+    if not time_col or time_col not in long_df.columns:
+        for candidate in ['time', 'Time', 'TimePoint', 'timepoint']:
+            if candidate in long_df.columns:
+                time_col = candidate
+                break
+
+    required_cols = [id_col, sex_col, time_col, prot_col, value_col]
+    missing = [c for c in required_cols if c not in long_df.columns]
+    if missing:
+        # Fallback to general columns if standard metadata mapping fails
+        id_col = long_df.columns[0]
+        sex_col = long_df.columns[1] if len(long_df.columns) > 1 else long_df.columns[0]
+        time_col = long_df.columns[2] if len(long_df.columns) > 2 else long_df.columns[0]
 
     df = long_df[[id_col, sex_col, time_col, prot_col, value_col]].copy()
     for c in (sex_col, time_col, prot_col):
         df[c] = df[c].astype(str).str.strip()
-    
+
     df[sex_col] = df[sex_col].map(lambda x: sex_short.get(x, x))
     df[value_col] = pd.to_numeric(df[value_col], errors='coerce')
     df = df[df[time_col].isin(time_order) & df[sex_col].isin(sex_order)]
@@ -92,16 +133,29 @@ def plot_interaction_heatmap_19_proteins(
     baseline = time_order[0]
     post_times = [t for t in time_order if t != baseline]
 
-    mean_tbl = (df.groupby([prot_col, sex_col, time_col])[value_col]
-                  .mean().unstack(time_col).reindex(columns=time_order))
+    mean_tbl = (
+        df.groupby([prot_col, sex_col, time_col])[value_col]
+        .mean()
+        .unstack(time_col)
+        .reindex(columns=time_order)
+    )
 
-    abs_diff = mean_tbl[post_times].sub(mean_tbl[baseline], axis=0)
-    log2fc = abs_diff
+    base = mean_tbl[baseline] + pseudocount
+    log2fc = np.log2(
+        np.abs((mean_tbl[post_times] + pseudocount).div(base, axis=0))
+    )
 
-    long_fc = (log2fc.stack().to_frame('log2FC').reset_index()
-               .rename(columns={'level_2': 'time'}))
-    long_fc['col'] = long_fc['time'].map(time_display).fillna(long_fc['time']) \
-                      + '_' + long_fc[sex_col].map(sex_short).fillna(long_fc[sex_col])
+    long_fc = (
+        log2fc.stack()
+        .to_frame('log2FC')
+        .reset_index()
+        .rename(columns={'level_2': time_col})
+    )
+    long_fc['col'] = (
+        long_fc[time_col].map(time_display).fillna(long_fc[time_col])
+        + '_'
+        + long_fc[sex_col].map(sex_short).fillna(long_fc[sex_col])
+    )
     mat = long_fc.pivot(index=prot_col, columns='col', values='log2FC')
 
     col_order = []
@@ -114,7 +168,7 @@ def plot_interaction_heatmap_19_proteins(
     stats = full_anova_results.copy()
     if 'Effect' in stats.columns:
         stats = stats[stats['Effect'] == effect_term]
-        
+
     name_col = prot_col if prot_col in stats.columns else 'Protein'
     stats[name_col] = stats[name_col].astype(str).str.strip()
     stats = stats.set_index(name_col)
@@ -134,11 +188,17 @@ def plot_interaction_heatmap_19_proteins(
     p_text = pvals.apply(lambda x: f'{x:.3g}')
 
     fig = plt.figure(figsize=(figsize_w, fig_h))
-    gs = fig.add_gridspec(nrows=2, ncols=8, height_ratios=[0.08, 0.92], wspace=0.05, hspace=0.02,
-                          width_ratios=[0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.35, 0.05])
+    gs = fig.add_gridspec(
+        nrows=2,
+        ncols=8,
+        height_ratios=[0.08, 0.92],
+        wspace=0.05,
+        hspace=0.02,
+        width_ratios=[0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.35, 0.05],
+    )
 
     ax_heat = fig.add_subplot(gs[1, 0:6])
-    ax_top  = fig.add_subplot(gs[0, 0:6], sharex=ax_heat)
+    ax_top = fig.add_subplot(gs[0, 0:6], sharex=ax_heat)
     ax_cbar = fig.add_subplot(gs[1, 7])
 
     if title:
@@ -147,8 +207,15 @@ def plot_interaction_heatmap_19_proteins(
     max_val = np.percentile(np.abs(mat.values), 98)
 
     hm = sns.heatmap(
-        mat, ax=ax_heat, cmap=cmap, center=0, vmin=-3.5, vmax=3.5,
-        cbar=False, linewidths=0.2, linecolor='white'
+        mat,
+        ax=ax_heat,
+        cmap=cmap,
+        center=0,
+        vmin=-max_val,
+        vmax=max_val,
+        cbar=False,
+        linewidths=0.2,
+        linecolor='white',
     )
 
     cbar = fig.colorbar(hm.collections[0], cax=ax_cbar)
@@ -169,17 +236,23 @@ def plot_interaction_heatmap_19_proteins(
             if tick.get_text() in poi:
                 tick.set_color(poi_color)
                 if poi_bold:
-                    tick.set_fontweight("bold")
+                    tick.set_fontweight('bold')
 
     ax_heat.set_xticks(np.arange(len(mat.columns)) + 0.5)
     ax_heat.set_xticklabels([])
-    
+
     mf_labels = [c.split('_')[-1] for c in mat.columns]
     for i, lab in enumerate(mf_labels):
         ax_heat.text(
-            i + 0.5, -0.02, lab, ha='center', va='top',
+            i + 0.5,
+            -0.02,
+            lab,
+            ha='center',
+            va='top',
             transform=ax_heat.get_xaxis_transform(),
-            rotation=x_tick_rotation, fontsize=7.5, fontweight='bold'
+            rotation=x_tick_rotation,
+            fontsize=7.5,
+            fontweight='bold',
         )
 
     n_sexes = len(sex_order)
@@ -198,7 +271,15 @@ def plot_interaction_heatmap_19_proteins(
     time_labels_disp = [time_display.get(t, t) for t in post_times]
 
     for xc, lab in zip(centers, time_labels_disp):
-        ax_top.text(xc, 0.3, lab, ha='center', va='center', fontsize=8, fontweight='bold')
+        ax_top.text(
+            xc,
+            0.3,
+            lab,
+            ha='center',
+            va='center',
+            fontsize=8,
+            fontweight='bold',
+        )
 
     ax_p = ax_heat.twinx()
     ax_p.set_ylim(ax_heat.get_ylim())
@@ -207,7 +288,13 @@ def plot_interaction_heatmap_19_proteins(
     for label in ax_p.get_yticklabels():
         label.set_rotation(0)
         label.set_fontweight('bold')
-    ax_p.set_ylabel('p_raw (Interaction)', rotation=90, labelpad=8, fontsize=8, fontweight='bold')
+    ax_p.set_ylabel(
+        'p_raw (Interaction)',
+        rotation=90,
+        labelpad=8,
+        fontsize=8,
+        fontweight='bold',
+    )
     ax_p.set_xticks([])
 
     plt.subplots_adjust(bottom=0.15)
