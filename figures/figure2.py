@@ -44,12 +44,23 @@ def render_clustermap(df_source, title_text, xlabel="Variable B", ylabel="Variab
         st.warning("⚠️ No data available for this integration view.")
         return
 
-    filtered = df_source[(df_source['p_val'] < 0.05) & (df_source['r_rm'].abs() > 0.5)].copy() if 'r_rm' in df_source.columns else df_source[df_source['p_val'] < 0.05].copy()
-    if filtered.empty:
-        st.info("ℹ️ No feature pairs met the strict filtering criteria.")
-        return
+    # Dynamically detect whether this is repeated measures (r_rm) or partial/standard correlation (r)
+    if 'r_rm' in df_source.columns:
+        # Strict filtering for repeated-measures correlations
+        filtered = df_source[(df_source['p_val'] < 0.05) & (df_source['r_rm'].abs() > 0.5)].copy()
+        val_col = 'r_rm'
+    elif 'r' in df_source.columns:
+        # Flexible filtering for baseline or partial correlations (e.g., p < 0.05, |r| > 0.3 or configurable)
+        filtered = df_source[(df_source['p_val'] < 0.05) & (df_source['r'].abs() > 0.3)].copy()
+        val_col = 'r'
+    else:
+        # Fallback if specific correlation column names are missing
+        filtered = df_source[df_source['p_val'] < 0.05].copy()
+        val_col = filtered.columns[-1]
 
-    val_col = 'r_rm' if 'r_rm' in filtered.columns else ('r' if 'r' in filtered.columns else filtered.columns[-1])
+    if filtered.empty:
+        st.info("ℹ️ No feature pairs met the strict filtering criteria (p < 0.05 & effect size threshold).")
+        return
 
     df_heatmap = filtered.pivot_table(index='Variable_A', columns='Variable_B', values=val_col).fillna(0.0)
     p_adj_pivot = filtered.pivot_table(index='Variable_A', columns='Variable_B', values='p_val').fillna(1.0)
@@ -65,7 +76,7 @@ def render_clustermap(df_source, title_text, xlabel="Variable B", ylabel="Variab
         vmin=-1, vmax=1,
         linewidths=0.75,
         edgecolor="white",
-        cbar_kws={"label": "Correlation ($r$)", "orientation": "horizontal"},
+        cbar_kws={"label": "Correlation Coefficient", "orientation": "horizontal"},
         cbar=True,
         figsize=(6, 5),
         dendrogram_ratio=0.08,
