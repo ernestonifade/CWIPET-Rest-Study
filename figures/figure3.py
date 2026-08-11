@@ -312,7 +312,7 @@ def render_figure3():
             display_df = master_results_df[
                 (master_results_df["#Entities found"] > 0)
                 & (master_results_df["Entities FDR"] < 0.05)
-            ].sort_values(by="Entities FDR").head(15)
+            ].sort_values(by="Entities FDR")#.head(15)
 
             # Dynamically select only columns that actually exist in the CSV/Excel
             desired_cols = [
@@ -348,7 +348,7 @@ def render_figure3():
             display_df = master_results_df[
                 (master_results_df["#Entities found"] > 0)
                 & (master_results_df["Entities FDR"] < 0.05)
-            ].sort_values(by="Entities FDR").head(15)
+            ].sort_values(by="Entities FDR")#.head(15)
 
             desired_cols = [
                 "Pathway name", "#Entities total", "Expected_Hits", 
