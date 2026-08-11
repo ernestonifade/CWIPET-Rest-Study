@@ -295,7 +295,7 @@ def render_figure4():
         axes[0].set_title("Muscle Temp1")
         
         # Optional: Add significance brackets between specific pairs (e.g., index 0 and 2)
-         add_bracket(axes[0], 0, 2, y_val, h_val, "* p < 0.05")
+        add_bracket(axes[0], 0, 2, y_val, h_val, "* p < 0.05")
         
         axes[0].grid(axis="y", linestyle="--", alpha=0.5)
 
