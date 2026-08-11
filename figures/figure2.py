@@ -191,7 +191,7 @@ def render_figure2():
     ])
 
     with tab1:
-        render_clustermap(data['cyto_baseline'], 'Baseline: Metabolites vs. Cytokines', xlabel="Metabolites", ylabel="Cytokines")
+        render_clustermap(data['cyto_baseline'], 'Baseline: Metabolites vs. Cytokines', xlabel="Cytokines", ylabel="Metabolites")
 
     with tab2:
         render_clustermap(data['cyto_rm'], 'Repeated Measures: Metabolites vs. Cytokines', xlabel="Metabolites", ylabel="Cytokines")
