@@ -44,7 +44,6 @@ def render_clustermap(df_source, title_text, xlabel="Variable B", ylabel="Variab
         st.warning("⚠️ No data available for this integration view.")
         return
 
-    # Make a copy to prevent SettingWithCopyWarning
     df = df_source.copy()
 
     # Clean string columns if present
@@ -52,34 +51,32 @@ def render_clustermap(df_source, title_text, xlabel="Variable B", ylabel="Variab
         if col in df.columns:
             df[col] = df[col].astype(str).str.strip()
 
-    # Filter by time1 if TimeWindow column exists (for baseline/partial files)
+    # Filter by time1 if TimeWindow column exists
     if 'TimeWindow' in df.columns:
-        df = df[df['TimeWindow'].isin(['time1', 'Baseline', 'baseline'])]
-        if df.empty:
-            # Fallback if specific time window string differs
-            df = df_source.copy()
+        subset = df[df['TimeWindow'].str.lower().isin(['time1', 'baseline'])]
+        if not subset.empty:
+            df = subset
 
-    # Determine correlation coefficient column and significance column
+    # Explicitly check for r_rm or r and apply absolute threshold > 0.5 & raw p_val < 0.05
     if 'r_rm' in df.columns:
         val_col = 'r_rm'
-        # Use p_val or p_adj depending on what's available and under 0.05
-        sig_col = 'p_val' if 'p_val' in df.columns else 'p_adj'
-        filtered = df[(df[sig_col] < 0.05) & (df[val_col].abs() > 0.5)].copy()
+        filtered = df[(df['p_val'] < 0.05) & (df['r_rm'].abs() > 0.5)].copy()
     elif 'r' in df.columns:
         val_col = 'r'
-        # For baseline data where p_adj might be high but p_val is significant, let's look at p_val < 0.05
-        sig_col = 'p_val' if 'p_val' in df.columns else 'p_adj'
-        filtered = df[(df[sig_col] < 0.05) & (df[val_col].abs() > 0.4)].copy()
+        filtered = df[(df['p_val'] < 0.05) & (df['r'].abs() > 0.5)].copy()
     else:
-        st.error("❌ Could not detect correlation column ('r' or 'r_rm') in dataset.")
-        return
+        filtered = df[df['p_val'] < 0.05].copy()
+        val_col = filtered.columns[-1]
+
+    # Debug caption to track row counts on screen
+    st.caption(f"📊 [{title_text}] Loaded: {len(df_source)} rows | Filtered (|r| > 0.5 & p < 0.05): {len(filtered)} rows")
 
     if filtered.empty:
-        st.info(f"ℹ️ No feature pairs met the filtering criteria (p < 0.05) for {title_text}. Total rows available: {len(df)}")
+        st.info(f"ℹ️ No feature pairs met the criteria (raw p < 0.05 & |r| > 0.5) for {title_text}.")
         return
 
     df_heatmap = filtered.pivot_table(index='Variable_A', columns='Variable_B', values=val_col).fillna(0.0)
-    p_adj_pivot = filtered.pivot_table(index='Variable_A', columns='Variable_B', values=sig_col).fillna(1.0)
+    p_adj_pivot = filtered.pivot_table(index='Variable_A', columns='Variable_B', values='p_val').fillna(1.0)
 
     if df_heatmap.shape[0] < 2 or df_heatmap.shape[1] < 2:
         st.warning("⚠️ Insufficient clustered dimensions after applying filters.")
