@@ -314,18 +314,17 @@ def render_figure3():
                 & (master_results_df["Entities FDR"] < 0.05)
             ].sort_values(by="Entities FDR").head(15)
 
+            # Dynamically select only columns that actually exist in the CSV/Excel
+            desired_cols = [
+                "Pathway name", "#Entities total", "Expected_Hits", 
+                "#Entities found", "Raw p", "Entities FDR", "Log2_Enrichment_Ratio"
+            ]
+            valid_cols = [c for c in desired_cols if c in display_df.columns]
+
             render_searchable_table(
                 df=display_df,
                 key_prefix="metabolite_pathways",
-                columns_to_show=[
-                    "Pathway name",
-                    "#Entities total",
-                    "Expected_Hits",
-                    "#Entities found",
-                    "Raw p",
-                    "Entities FDR",
-                    "Log2_Enrichment_Ratio",
-                ],
+                columns_to_show=valid_cols if valid_cols else None,
             )
         else:
             st.warning("⚠️ Results file not found in GitHub paths.")
@@ -351,22 +350,19 @@ def render_figure3():
                 & (master_results_df["Entities FDR"] < 0.05)
             ].sort_values(by="Entities FDR").head(15)
 
+            desired_cols = [
+                "Pathway name", "#Entities total", "Expected_Hits", 
+                "#Entities found", "Raw p", "Entities FDR", "Log2_Enrichment_Ratio"
+            ]
+            valid_cols = [c for c in desired_cols if c in display_df.columns]
+
             render_searchable_table(
                 df=display_df,
                 key_prefix="cytokine_pathways",
-                columns_to_show=[
-                    "Pathway name",
-                    "#Entities total",
-                    "Expected_Hits",
-                    "#Entities found",
-                    "Raw p",
-                    "Entities FDR",
-                    "Log2_Enrichment_Ratio",
-                ],
+                columns_to_show=valid_cols if valid_cols else None,
             )
         else:
             st.warning("⚠️ Results file not found in GitHub paths.")
-
 
 def load_fig3_results():
     """Helper loader for Figure 3 pathway data to satisfy app.py imports."""
