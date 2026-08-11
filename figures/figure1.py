@@ -350,7 +350,7 @@ def render_figure1():
         st.pyplot(fig_hm)
 
     elif selected_view == '🧬 Est Marginal Mean Plot: Group Effect':
-        fig, axes = plt.subplots(1, 2, figsize=(6.5, 3.5), layout='constrained')
+        fig, axes = plt.subplots(2, 2, figsize=(6.5, 3.5), layout='constrained')
         df_emm = pd.DataFrame({
             'Metabolite': [
                 'IL-26', 'IL-26', 'IL-26',
