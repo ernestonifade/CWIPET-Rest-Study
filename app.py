@@ -229,7 +229,7 @@ elif (
         mime=(
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         ),
-        key=f"dl_fig3_{uuid.uuid3()}",
+        key=f"dl_fig3_{uuid.uuid4()}",
     )
 
 elif (
@@ -277,7 +277,7 @@ elif selected_figure == "Figure 5: Metabolite response to CWI given bodymetrics"
         mime=(
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         ),
-        key=f"dl_fig5_{uuid.uuid5()}",
+        key=f"dl_fig5_{uuid.uuid4()}",
     )
 
 elif selected_figure == "Figure 6: Cytokine response to CWI given bodymetrics and bodytemperatures":
@@ -300,7 +300,7 @@ elif selected_figure == "Figure 6: Cytokine response to CWI given bodymetrics an
         mime=(
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         ),
-        key=f"dl_fig6_{uuid.uuid6()}",
+        key=f"dl_fig6_{uuid.uuid4()}",
     )
 
 
