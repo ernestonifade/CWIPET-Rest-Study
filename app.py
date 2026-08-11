@@ -224,7 +224,7 @@ elif selected_figure == "Figure 3: Pathway enrichment correlating cytokines and 
         )
 
 elif selected_figure == "Figure 4: Body temperatures responses to different degrees of CWI":
-    ancova_df, posthoc_df, long_df = load_fig4_results()
+    ancova_df, posthoc_df, long_df, fig4_long_df = load_fig4_results()
     out_name = "Figure4_Full_Stats_Report.xlsx"
     export_sheets_to_excel(
         out_name,
