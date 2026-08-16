@@ -94,7 +94,7 @@ def render_pathway_enrichment_bubble_from_df(
     df["-log10Sig"] = -np.log10(df["Significance"].astype(float).clip(lower=1e-15))
     df = df.sort_values("-log10Sig", ascending=True)
 
-    fig, ax = plt.subplots(figsize=(4.0, max(4.0, len(df) * 0.25)))
+    fig, ax = plt.subplots(figsize=(3,3))#(figsize=(4.0, max(4.0, len(df) * 0.25)))
     df["PlotSize"] = (df["Number of Molecules Enriched"] + 1) * 35
     df["PlotSize"] = df["PlotSize"].clip(lower=60, upper=300)
 
