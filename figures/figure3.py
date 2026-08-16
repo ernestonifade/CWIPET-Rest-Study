@@ -12,10 +12,6 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-plt.rcParams["path.simplify"] = True
-plt.rcParams["path.simplify_threshold"] = 1.0
-plt.rcParams["agg.path.chunksize"] = 10000
-
 
 def render_pathway_enrichment_bubble_from_df(
     results_input=None,
@@ -24,6 +20,22 @@ def render_pathway_enrichment_bubble_from_df(
     pathway_indices=None,
 ):
     mpl.rcParams["svg.fonttype"] = "none"
+    # --- MATPLOTLIB GLOBAL TYPOGRAPHY SETTINGS ---
+    plt.rcParams['svg.fonttype'] = 'none'
+    plt.rcParams.update({
+        'font.family': 'sans-serif',
+        'font.sans-serif': ['Arial', 'Helvetica', 'DejaVu Sans'],
+        'font.size': 8,
+        'axes.titlesize': 8.5,
+        'axes.labelsize': 8,
+        'xtick.labelsize': 7,
+        'ytick.labelsize': 7,
+        'legend.fontsize': 7,
+        'axes.labelweight': 'bold',
+        'axes.titleweight': 'bold',
+        'figure.dpi': 300,
+        'savefig.dpi': 600
+    })
 
     # 1. Handle dynamic file loading based on input path, list, or DataFrame
     if results_input is None or isinstance(
@@ -146,7 +158,7 @@ def render_pathway_enrichment_bubble_from_df(
         loc="upper left",
         frameon=False,
         labelspacing=1.2,
-        prop={"weight": "bold", "size": 6.5},
+        prop={"weight": "bold", "size": 7},
     )
 
     s_min, s_max = int(df["Number of Molecules Enriched"].min()), int(
